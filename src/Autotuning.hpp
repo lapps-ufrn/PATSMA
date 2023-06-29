@@ -45,7 +45,7 @@ class Autotuning {
   void print();
   void reset(int level);
 
-  auto operator=(Autotuning) -> Autotuning = delete ;
+  Autotuning operator=(Autotuning) = delete;
   auto operator=(Autotuning &&) -> Autotuning& = delete;	
   Autotuning(const Autotuning &) = delete;
   Autotuning(Autotuning &&) = delete;  

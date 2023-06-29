@@ -112,7 +112,7 @@ CSA::CSA(int _num_opt, int _dim, int _max_iter) {
   this->num_opt = _num_opt;
   this->dim = _dim;
   try {
-    this->max_iter = _max_iter / _num_opt;
+    this->max_iter = (int)(_max_iter / (double)_num_opt);
   } catch (std::runtime_error &e) {
     std::cout << "Exception occurred" << std::endl << e.what();
   }

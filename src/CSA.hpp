@@ -74,7 +74,7 @@ class CSA {
   void reset(int level);
   auto getSolution(int i) const -> double * { return solution[i]; }
 
-  auto operator=(CSA) -> CSA = delete;
+  CSA operator=(CSA) = delete;
   auto operator=(CSA &&) -> CSA & = delete;
   CSA(const CSA &) = delete;
   CSA(CSA &&) = delete;
