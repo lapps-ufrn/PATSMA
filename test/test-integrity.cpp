@@ -1,11 +1,12 @@
-#include "Autotuning.hpp"
-#include "catch.hpp"
-
-#include <omp.h>
 #include <math.h>
+#include <omp.h>
 #include <unistd.h>
-#include <iostream>
+
 #include <algorithm>
+#include <catch2/catch.hpp>
+#include <iostream>
+
+#include "Autotuning.hpp"
 
 double func01(double x) {
   return 2 * sin(pow(x, 2)) + 5 * pow(sin(x), 3) + pow(cos(pow(x, 2)), 4) +
@@ -41,7 +42,7 @@ TEST_CASE("INTEGRITY") {
   times[count++] = omp_get_wtime() - time;
   wEnd(at);
 
-  pos = find_pos(*std::min_element(times, times + count - 1), times, count);  
+  pos = find_pos(*std::min_element(times, times + count - 1), times, count);
   REQUIRE(value == values[pos]);
 
   at->reset(2);
