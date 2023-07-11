@@ -8,79 +8,83 @@
 
 #include "Autotuning.hpp"
 
-double func01(double x) {
-  return 2 * sin(pow(x, 2)) + 5 * pow(sin(x), 3) + pow(cos(pow(x, 2)), 4) +
-         pow(x, 2) / 1000 + 10;
-}
+#define REQUIRE_MESSAGE(cond, msg) \
+  do {                             \
+    INFO(msg);                     \
+    REQUIRE(cond);                 \
+  } while ((void)0, 0)
 
-int find_pos(double element, double *vector, int size) {
-  for (int i = 0; i < size; i++) {
-    if (element == vector[i]) return i;
+class Test {
+  int count;
+  double time;
+  int *values;
+  double *times;
+
+ public:
+  Test(int n_iter, int n_opt) : count(0) {
+    values = new int[3 * (n_iter + n_opt) + 5];
+    times = new double[3 * (n_iter + n_opt) + 5];
   }
-  return -1;
-}
+  ~Test() {
+    delete values;
+    delete times;
+  }
+
+  void test_function_01(double x) {
+    time = omp_get_wtime();
+    usleep(function_01(double(x)) * 1000);
+    times[count] = omp_get_wtime() - time;
+    values[count] = x;
+    count++;
+  }
+
+  int get_min_value() {
+    double element = *std::min_element(times, times + count - 1);
+    for (int i = 0; i < count; i++) {
+      if (element == times[i]) return values[i];
+    }
+    throw std::runtime_error("Element not found\n");
+  }
+
+  void zero_count() { count = 0; }
+
+ private:
+  double function_01(double x) {
+    return 2 * sin(pow(x, 2)) + 5 * pow(sin(x), 3) + pow(cos(pow(x, 2)), 4) +
+           pow(x, 2) / 1000 + 10;
+  }
+};
 
 TEST_CASE("INTEGRITY") {
   const int dim = 1;
   const int min = -100, max = 100;
   const int ignore = 0;
   const int n_opt = 4;
-  const int n_iter = 100;
-  int pos;
+  const int n_iter = 200;
   int value;
-  int count = 0;
-  double time;
-  int *values = new int[3 * (n_iter + n_opt) + 5];
-  double *times = new double[3 * (n_iter + n_opt) + 5];
 
   Autotuning *at = new Autotuning(dim, min, max, ignore, n_opt, n_iter);
+  Test *t = new Test(n_iter, n_opt);
 
-  wStart(at, value);
-  time = omp_get_wtime();
-  usleep(func01(double(value)) * 1000);
-  values[count] = value;
-  times[count++] = omp_get_wtime() - time;
-  wEnd(at);
-
-  pos = find_pos(*std::min_element(times, times + count - 1), times, count);
-  REQUIRE(value == values[pos]);
+  AUTOTUNING_RUN(at, value) { t->test_function_01(value); }
+  REQUIRE_MESSAGE(value == t->get_min_value(), "Base Case");
 
   at->reset(2);
 
-  wStart(at, value);
-  time = omp_get_wtime();
-  usleep(func01(double(value)) * 1000);
-  values[count] = value;
-  times[count++] = omp_get_wtime() - time;
-  wEnd(at);
-
-  pos = find_pos(*std::min_element(times, times + count - 1), times, count);
-  REQUIRE(value == values[pos]);
+  AUTOTUNING_RUN(at, value) { t->test_function_01(value); }
+  REQUIRE_MESSAGE(value == t->get_min_value(), "Reset 2 Case");
 
   at->reset(1);
 
-  wStart(at, value);
-  time = omp_get_wtime();
-  usleep(func01(double(value)) * 1000);
-  values[count] = value;
-  times[count++] = omp_get_wtime() - time;
-  wEnd(at);
-
-  pos = find_pos(*std::min_element(times, times + count - 1), times, count);
-  REQUIRE(value == values[pos]);
+  AUTOTUNING_RUN(at, value) { t->test_function_01(value); }
+  REQUIRE_MESSAGE(value == t->get_min_value(), "Reset 1 Case");
 
   at->reset(0);
-  count = 0;
+  t->zero_count();
 
-  wStart(at, value);
-  time = omp_get_wtime();
-  usleep(func01(double(value)) * 1000);
-  values[count] = value;
-  times[count++] = omp_get_wtime() - time;
-  wEnd(at);
-
-  pos = find_pos(*std::min_element(times, times + count - 1), times, count);
-  REQUIRE(value == values[pos]);
+  AUTOTUNING_RUN(at, value) { t->test_function_01(value); }
+  REQUIRE_MESSAGE(value == t->get_min_value(), "Reset 0 Case");
 
   delete at;
+  delete t;
 }

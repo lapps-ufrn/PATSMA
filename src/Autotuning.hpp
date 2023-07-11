@@ -3,17 +3,11 @@
 
 #include "CSA.hpp"
 
-#define wStart(AT, POINT)     \
-  while (!(AT)->finished()) { \
-    (AT)->start(&(POINT));
-#define wEnd(AT) \
-  (AT)->end();   \
-  }
-#define autotuning_run(AT, __FUNCTION__, VALUE) \
-  while (!(AT)->finished()) {                   \
-    (AT)->start(&(VALUE));                      \
-    (__FUNCTION__);                             \
-    (AT)->end();                                \
+#define AUTOTUNING_RUN(AT, VALUE)      \
+  while (!(AT)->finished()) {          \
+    (AT)->start(&(VALUE));             \
+    /* Your original code goes here */ \
+    (AT)->end();                       \
   }
 
 class Autotuning {
@@ -45,10 +39,10 @@ class Autotuning {
   void print();
   void reset(int level);
 
-  Autotuning operator=(Autotuning) = delete;
-  auto operator=(Autotuning &&) -> Autotuning& = delete;	
+  auto operator=(Autotuning) -> Autotuning = delete;
+  auto operator=(Autotuning &&) -> Autotuning & = delete;
   Autotuning(const Autotuning &) = delete;
-  Autotuning(Autotuning &&) = delete;  
+  Autotuning(Autotuning &&) = delete;
 
   Autotuning() = default;
   Autotuning(int _dim, int _min, int _max, int _ignore, int _num_opt,

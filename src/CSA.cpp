@@ -1,21 +1,23 @@
 #include "CSA.hpp"
 
+#include <cstring>   // memset
 #include <iostream>  // cout, endl
 #include <limits>    // numeric_limits
 
+#ifndef DBL_MAX
 #define DBL_MAX std::numeric_limits<double>::max()
+#endif
 
-inline void CSA::copy(double *out, double *in) const {
-  for (int i = 0; i < dim; i++) {
-    out[i] = in[i];
-  }
+/// @brief Copy solution vector
+/// @param out the output solution vector
+/// @param in the input solution vector
+inline void CSA::copySolution(double *out, double *in) const {
+  memcpy(out, in, dim);
 }
 
-/**
- * Make round shift for values < -1 and > 1
- * value : in - Point
- * return : out - Point between -1 and 1
- */
+/// @brief Make round shift for values < -1 and > 1
+/// @param value Point
+/// @return Point between -1 and 1
 auto CSA::rotate(double value) -> double {
   int i = (int)value;
   if (value > 1.0) {
@@ -26,9 +28,7 @@ auto CSA::rotate(double value) -> double {
   return value;
 }
 
-/**
- * Find the cost maximum value and save in maxCost
- */
+/// @brief Find the cost maximum value and save in maxCost
 void CSA::maxCost() {
   max_cost = opts[0].curCost;
   for (int k = 1; k < num_opt; k++) {
@@ -38,19 +38,18 @@ void CSA::maxCost() {
   }
 }
 
-/**
- * Switch values in vector position [i] from current solution to solution,
- * same from current cost to cost and check if this new cost is the maximum
- * i : in - Switch position
- */
-void CSA::swap(int i) {
+/// @brief Switch values in vector position [i] from current solution to
+/// solution, same from current cost to cost and check if this new cost is the
+/// maximum
+/// @param i Switch position
+void CSA::swapCostSolution(int i) {
   double *temp;
-  tmp = opts[i].cost;
-  opts[i].cost = opts[i].curCost;
+  tmp = opts[i].probCost;
+  opts[i].probCost = opts[i].curCost;
   opts[i].curCost = tmp;
 
-  temp = opts[i].sol;
-  opts[i].sol = opts[i].curSol;
+  temp = opts[i].probSol;
+  opts[i].probSol = opts[i].curSol;
   opts[i].curSol = temp;
 
   if (opts[i].curCost > max_cost) {
@@ -58,26 +57,24 @@ void CSA::swap(int i) {
   }
 }
 
-/**
- * Reset the CSA
- * level : in - Select the level of reseting
- *    level 2 - Reset the number of iteretions
- *    level 1 - Reset the points and the temperatures (plus the previous ones)
- *    level 0 - Remove the best solution (plus the previous ones)
- *
- */
+/// @brief Reset the CSA
+/// @param level Select the level of reseting
+///    level 2 - Reset the number of iteretions
+///    level 1 - Reset the points and the temperatures (plus the previous ones)
+///    level 0 - Remove the best solution (plus the previous ones)
 void CSA::reset(int level) {
   int i, j;
   switch (level) {
-    case 0:  // Remove the infomation of best solution
+    case 0:  // Remove infomation of best solution
       best_cost = DBL_MAX;
+      memset(best_sol, 0, dim * sizeof(double));
 
-    case 1:  // Reset the points and the csa
+    case 1:  // Reset points and temperatures
       step = 0;
       tgen = TG;
       tac = TA;
 
-      // Step 2.2: Inital points generate
+      // Inital points generate
       for (i = 0; i < num_opt; i++) {
         for (j = 0; j < dim; j++) {
           drand48_r(&opts[i].buffer, &opts[i].result);
@@ -87,23 +84,22 @@ void CSA::reset(int level) {
         opts[i].curCost = 0;
       }
 
-    case 2:  // Reset only the number of iteretions
+    case 2:  // Reset only number of iteretions
       iter = 0;
       break;
 
     default:
-      std::cout << "There are not the CSA reset option level " << level
-                << std::endl;
+      std::string msg =
+          "There is not the CSA reset option level " + std::to_string(level);
+      throw std::runtime_error(msg);
       break;
   }
 }
 
-/**
- * Variables inicialization
- * _num_opt : in - Amount of optimizer
- * _dim : in - Cost Function Dimension
- * _max_iter : in - Maximun iteration
- */
+/// @brief Variables inicialization
+/// @param _num_opt Amount of optimizer
+/// @param _dim Cost Function Dimension
+/// @param _max_iter Maximun iteration
 CSA::CSA(int _num_opt, int _dim, int _max_iter) {
   int i, j;
 
@@ -142,7 +138,7 @@ CSA::CSA(int _num_opt, int _dim, int _max_iter) {
     for (i = 0; i < num_opt; i++) {
       opts[i].id = i;
       opts[i].curSol = new double[dim];
-      opts[i].sol = new double[dim];
+      opts[i].probSol = new double[dim];
       solution[i] = new double[dim];
       srand48_r(rand(), &opts[i].buffer);
     }
@@ -159,7 +155,7 @@ CSA::CSA(int _num_opt, int _dim, int _max_iter) {
   //          opts[i].curSol[j] = _points[i][j];
   //      }
   //      solution[i] = opts[i].curSol;
-  //      copy(solution[i], opts[i].curSol, dim );
+  //      copySolution(solution[i], opts[i].curSol, dim );
   //  }
 
   // Step 2.2: Inital points generate
@@ -172,12 +168,8 @@ CSA::CSA(int _num_opt, int _dim, int _max_iter) {
   }
 }
 
-/**
- * Coupled Simulated Annealing function
- * csa : in - Global variables
- * costs : in - Cost vector for all Optimizers
- * return : out - Points vector for all Optimizers
- */
+/// @brief Coupled Simulated Annealing function
+/// @param costs Cost vector for all Optimizers
 void CSA::partial_exec(double *costs) {
   int k, j, i;
 
@@ -190,7 +182,7 @@ void CSA::partial_exec(double *costs) {
           opts[i].curCost = costs[i];
           if (costs[i] < best_cost) {
             best_cost = costs[i];
-            copy(best_sol, opts[i].curSol);
+            copySolution(best_sol, opts[i].curSol);
           }
         }
         // Step 3: Calculate gamma
@@ -206,13 +198,10 @@ void CSA::partial_exec(double *costs) {
           for (j = 0; j < dim; j++) {
             drand48_r(&opts[i].buffer, &opts[i].result);
             opts[i].result = tan(M_PI * (opts[i].result - 0.5));
-            opts[i].sol[j] = rotate(opts[i].curSol[j] + tgen * opts[i].result);
+            opts[i].probSol[j] =
+                rotate(opts[i].curSol[j] + tgen * opts[i].result);
           }
-          copy(solution[i], opts[i].sol);
-          // opts[i].sol[0] = solution[i][0];
-          // for (int ii = 0; ii < dim; ii++) {
-          //   opts[i].sol[ii] = solution[i][ii];
-          // }
+          copySolution(solution[i], opts[i].probSol);
         }
         step = 2;
         return;
@@ -220,16 +209,16 @@ void CSA::partial_exec(double *costs) {
       case 2:
         // Step 5: Define if accept new solutions
         for (i = 0; i < num_opt; i++) {
-          opts[i].cost = costs[i];
+          opts[i].probCost = costs[i];
 
           // Step 5.1: If new soluiton is better
-          if (opts[i].cost < opts[i].curCost) {
+          if (opts[i].probCost < opts[i].curCost) {
             // Step 5.1.2: Better global solution
-            if (opts[i].cost < best_cost) {
-              best_cost = opts[i].cost;
-              copy(best_sol, opts[i].sol);
+            if (opts[i].probCost < best_cost) {
+              best_cost = opts[i].probCost;
+              copySolution(best_sol, opts[i].probSol);
             }
-            swap(i);
+            swapCostSolution(i);
           }
           // Step 5.2: Else test probability of accept
           else {
@@ -237,7 +226,7 @@ void CSA::partial_exec(double *costs) {
             opts[i].prob = exp((opts[i].curCost - max_cost) / tac) / gamma;
 
             if (opts[i].prob > opts[i].result) {
-              swap(i);
+              swapCostSolution(i);
             }
           }
         }  // Optimizers
@@ -257,7 +246,7 @@ void CSA::partial_exec(double *costs) {
         else {
           step = 1;
           // Step 7.1: Procura de Máximo
-          // maxCost(csa);//Esse teste já está sendo feito do swap()
+          // maxCost(csa);//Esse teste já está sendo feito do swapCostSolution()
           // Step 7.2: Calculate gamma (same that step 3)
           gamma = tmp = 0.0;
           for (k = 0; k < num_opt; k++) {

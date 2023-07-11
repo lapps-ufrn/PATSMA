@@ -13,6 +13,9 @@
     exit(0);                                                        \
   }
 
+/// @brief Rescale point from int [min,max] to double [-1,1]
+/// @param out Int point
+/// @param in Double point
 inline void Autotuning::rescale(double *out, int *in) const {
   for (int i = 0; i < csa->dim; i++) {
     out[i] = (((double)in[i] + 1.0) / 2.0) * ((double)max - (double)min) +
@@ -20,6 +23,9 @@ inline void Autotuning::rescale(double *out, int *in) const {
   }
 }
 
+/// @brief Rescale point from double [-1,1] to int [min,max]
+/// @param out Double point
+/// @param in Int point
 inline void Autotuning::rescale(int *out, double *in) const {
   for (int i = 0; i < csa->dim; i++) {
     out[i] = (int)round(((in[i] + 1.0) / 2.0) * ((double)max - (double)min) +
@@ -27,15 +33,13 @@ inline void Autotuning::rescale(int *out, double *in) const {
   }
 }
 
-/*
- * at: in - Auto-tuning Global Variables
- * _dim: in - Cost Function Dimension
- * _min: in - Minimum value of search interval
- * _max: in - Maximum value of search interval
- * _ignore: in - Amount of ignore iterations, interlevead with one accpeted
- * _num_opt: in - Amount of optimizer
- */
-
+/// @brief Auto-tuning constructor
+/// @param _dim Cost Function Dimension
+/// @param _min Minimum value of search interval
+/// @param _max Maximum value of search interval
+/// @param _ignore Amount of ignore iterations, interlevead with one accpeted
+/// @param _num_opt Amount of optimizer
+/// @param _numInt Number of iterations
 Autotuning::Autotuning(int _dim, int _min, int _max, int _ignore, int _num_opt,
                        int _numInt)
     : finished_flag(false),
@@ -75,24 +79,26 @@ Autotuning::Autotuning(int _dim, int _min, int _max, int _ignore, int _num_opt,
   }
 }
 
+/// @brief Reset the autotuning and CSA
+/// @param level Select the level of reseting
+///    level 2 - Reset the number of iteretions
+///    level 1 - Reset the points and the temperatures (plus the previous ones)
+///    level 0 - Remove the best solution (plus the previous ones)
 void Autotuning::reset(int level) {
 #ifdef _OPENMP
 #pragma omp single
 #endif
   {
     iOpt = 0;
-    finished_flag = false;
     iteration = 0;
+    finished_flag = false;
 
     csa->reset(level);
   }
 }
 
-/*
- * at: in - Auto-tuning Global Variables
- * _cost: in - Cost Value [f(point)]
- * return: out - Caculated point
- */
+/// @brief Goes before the cost function
+/// @param point The point to be analyzed
 void Autotuning::start(int *point) {
   // End execution
   if (!finished_flag) {
@@ -121,10 +127,8 @@ void Autotuning::start(int *point) {
           csa->partial_exec(cost);
           if (csa->step == END) {  // End execution, return best solution
             finished_flag = true;
-            // reScaleToInt(point, csa->best_sol, min, max, csa->dim);
             rescale(point, csa->best_sol);
           } else {  // Return first optimazate
-            // reScaleToInt(point, csa->solution[0], min, max, csa->dim);
             rescale(point, csa->solution[0]);
             iOpt = 1;
           }
@@ -137,11 +141,7 @@ void Autotuning::start(int *point) {
   }
 }
 
-/*
- * at: in - Auto-tuning Global Variables
- * _cost: in - Cost Value [f(point)]
- * return: out - Caculated point
- */
+/// @brief Goes after the cost function
 void Autotuning::end() {
   if (!finished_flag) {
 #ifdef _OPENMP
@@ -156,6 +156,7 @@ void Autotuning::end() {
   }
 }
 
+/// @brief Printe class basic information
 void Autotuning::print() {
   int *aux = new int[csa->dim];
   std::cout << "------------------- Autotuning Parameters -------------------"

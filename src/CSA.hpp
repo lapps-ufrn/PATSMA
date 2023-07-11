@@ -27,13 +27,13 @@
 #endif
 
 struct Opt {
-  int id;          // id
-  double *curSol;  // Solução atual     [* Dimensões]
-  double *sol;     // Solução provável  [* Dimensões]
+  int id;           // id
+  double *curSol;   // Solução atual     [* Dimensões]
+  double *probSol;  // Solução provável  [* Dimensões]
   // double *temp;       //Auxiliar de troca [* Dimensões]
   struct drand48_data buffer;
-  double curCost;  // Custo atual
-  double cost;     // Custo da solução provável
+  double curCost;   // Custo atual
+  double probCost;  // Custo da solução provável
   // Auxiliars
   double prob;
   double result;
@@ -65,8 +65,8 @@ class CSA {
   double **solution;  // Soluções parciais a serem retornadas
 
   void maxCost();
-  void swap(int i);
-  void copy(double *out, double *in) const;
+  void swapCostSolution(int i);
+  void copySolution(double *out, double *in) const;
   static auto rotate(double value) -> double;
 
  public:
@@ -85,7 +85,7 @@ class CSA {
     delete[] best_sol;
     for (int i = 0; i < num_opt; i++) {
       delete[] opts[i].curSol;
-      delete[] opts[i].sol;
+      delete[] opts[i].probSol;
       delete[] solution[i];
     }
     delete[] opts;
