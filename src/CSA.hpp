@@ -2,7 +2,9 @@
 #define _CSA_
 
 #include <cmath>
-#include <ctime>
+#include <ctime>  // drand48_data
+
+#include "NumericalOptimizer.hpp"
 
 #ifndef M_PI
 #define M_PI 3.14159265358979323846264338327
@@ -22,75 +24,63 @@
 // #define MAXITER 200
 // #define TGEN 0.1
 
-#ifndef END
-#define END 99
-#endif
+#define END 0x99
 
-struct Opt {
-  int id;           // id
-  double *curSol;   // Solução atual     [* Dimensões]
-  double *probSol;  // Solução provável  [* Dimensões]
-  // double *temp;       //Auxiliar de troca [* Dimensões]
-  struct drand48_data buffer;
-  double curCost;   // Custo atual
-  double probCost;  // Custo da solução provável
-  // Auxiliars
-  double prob;
-  double result;
-};
-
-class CSA {
- private:
-  friend class Autotuning;
+class CSA : public NumericalOptimizer {
+  struct Opt {
+    int id;           // id
+    double *curSol;   // Solução atual     [* Dimensões]
+    double *probSol;  // Solução provável  [* Dimensões]
+    struct drand48_data buffer;
+    double curCost;   // Custo atual
+    double probCost;  // Custo da solução provável
+    // Auxiliars
+    double prob;
+    double result;
+  };
 
   int step;
-  int iter;  // Interação
-  int max_iter;
+  int iter;      // Iteration
+  int max_iter;  // Max number of iterations
 
-  int num_opt;  // Número de Otimizadores
-  int dim;      // Número de Dimensões
+  int i_opt;    // Iterator for Optimizers
+  int num_opt;  // Number of Optimizers
+  int dim;      // Number of Dimensions
 
-  double tgen;  // Temperatura de Geração
-  double tac;   // Temperatura de Aceitação
+  double tgen;  // Generation Temperature
+  double tac;   // Acceptance Temperature
   double gamma;
-  double max_cost;  // Valor máximo de custo
+  double max_cost;  // Maximum cost value
   double tmp;
-  double prob;
   double prob_var;
 
-  double *best_sol;  // Melhor Solução [* Dimensões]
-  double best_cost;  // Melhor valor de custo
+  double *best_sol;  // Best Solution [* Dimensões]
+  double best_cost;  // Best Cost relative to best solution
 
-  struct Opt *opts;   // Otimizadores
-  double **solution;  // Soluções parciais a serem retornadas
+  struct Opt *opts;  // Optimizers
+  double *point;     // Point to return
 
-  void maxCost();
-  void swapCostSolution(int i);
-  void copySolution(double *out, double *in) const;
-  static auto rotate(double value) -> double;
+  void swap_opt_info(int i);
+  void copy_solution(double *out, double *in) const;
+  static double rotate(double value);
+  void partial_exec();
 
- public:
-  void partial_exec(double *costs);
-  void reset(int level);
-  auto getSolution(int i) const -> double * { return solution[i]; }
-
+  CSA() = delete;
   CSA operator=(CSA) = delete;
-  auto operator=(CSA &&) -> CSA & = delete;
+  CSA &operator=(CSA &&) = delete;
   CSA(const CSA &) = delete;
   CSA(CSA &&) = delete;
 
-  CSA() = delete;
+ public:
+  int getNumPoints() const override { return num_opt; }
+  int getDimension() const override { return dim; }
+  void print() const override;
+  void reset(int level) override;
+  bool isEnd() const override { return step == END; }
+  double *run(double cost) override;
+
   CSA(int _num_opt, int _dim, int _max_iter);
-  ~CSA() {
-    delete[] best_sol;
-    for (int i = 0; i < num_opt; i++) {
-      delete[] opts[i].curSol;
-      delete[] opts[i].probSol;
-      delete[] solution[i];
-    }
-    delete[] opts;
-    delete[] solution;
-  }
+  ~CSA();
 };
 
 #endif

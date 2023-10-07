@@ -1,23 +1,21 @@
 #include "Autotuning.hpp"
 
-#include <omp.h>
-
 #include <cmath>     // round
 #include <iostream>  // cout, endl
-#include <limits>    // numeric_limits
+#ifdef _OPENMP
+#include <omp.h>
+#else
+#include <chrono>
+#endif
 
-#define DBL_MAX std::numeric_limits<double>::max()
-#define isAlloc(v, s)                                               \
-  if ((v) == NULL) {                                                \
-    std::cout << "Failed allocating memory for " s "" << std::endl; \
-    exit(0);                                                        \
-  }
+#define AT_OPT_CSA 0x11
+#define AT_OPT_NM 0x22
 
 /// @brief Rescale point from int [min,max] to double [-1,1]
 /// @param out Int point
 /// @param in Double point
 inline void Autotuning::rescale(double *out, int *in) const {
-  for (int i = 0; i < csa->dim; i++) {
+  for (int i = 0; i < optimizer->getDimension(); i++) {
     out[i] = (((double)in[i] + 1.0) / 2.0) * ((double)max - (double)min) +
              (double)min;
   }
@@ -27,56 +25,36 @@ inline void Autotuning::rescale(double *out, int *in) const {
 /// @param out Double point
 /// @param in Int point
 inline void Autotuning::rescale(int *out, double *in) const {
-  for (int i = 0; i < csa->dim; i++) {
+  for (int i = 0; i < optimizer->getDimension(); i++) {
     out[i] = (int)round(((in[i] + 1.0) / 2.0) * ((double)max - (double)min) +
                         (double)min);
   }
 }
 
-/// @brief Auto-tuning constructor
-/// @param _dim Cost Function Dimension
+/// @brief Auto-tuning constructor using CSA default optimizer
+/// @param dim Cost Function Dimension
 /// @param _min Minimum value of search interval
 /// @param _max Maximum value of search interval
 /// @param _ignore Amount of ignore iterations, interlevead with one accpeted
-/// @param _num_opt Amount of optimizer
-/// @param _numInt Number of iterations
-Autotuning::Autotuning(int _dim, int _min, int _max, int _ignore, int _num_opt,
-                       int _numInt)
-    : finished_flag(false),
-      min(_min),
-      max(_max),
-      iteration(0),
-      t0(0),
-      t1(0),
-      runtime(0),
-      iOpt(0) {
-#ifdef _OPENMP
-#pragma omp single nowait
-#endif
-  {
-    if (_dim < 1) {
-      std::cout << "Dimensional Value Invalid! Set _dim > 0." << std::endl;
-      exit(0);
-    }
-    if (_num_opt < 1) {
-      std::cout << "Optmizers Number Invalid! Set _num_opt > 0." << std::endl;
-      exit(0);
-    }
-    if (_ignore < 0) {
-      std::cout << "Ignore Value Invalid! Set _ignore > -1." << std::endl;
-      exit(0);
-    }
+/// @param num_opt Amount of optimizer
+/// @param max_iter Maximum number of iterations
+Autotuning::Autotuning(int dim, int _min, int _max, int _ignore, int num_opt,
+                       int max_iter)
+    : Autotuning(_min, _max, _ignore, new CSA(num_opt, dim, max_iter)) {}
 
-    ignore = _ignore + 1;
-
-    cost = new double[_num_opt];
-    isAlloc(cost, "cost");
-
-    csa = new CSA(_num_opt, _dim, (_numInt / ignore));
-#ifdef VERBOSE
-    print();
-#endif
+Autotuning::Autotuning(int _min, int _max, int _ignore,
+                       NumericalOptimizer *_optimizer)
+    : min(_min), max(_max), iteration(0), runtime(0) {
+  if (_ignore < 0) {
+    throw std::invalid_argument("Ignore Value Invalid! Set _ignore >= 0.");
   }
+
+  ignore = _ignore + 1;
+  optimizer = _optimizer;
+
+#ifdef VERBOSE
+  print();
+#endif
 }
 
 /// @brief Reset the autotuning and CSA
@@ -89,11 +67,28 @@ void Autotuning::reset(int level) {
 #pragma omp single
 #endif
   {
-    iOpt = 0;
     iteration = 0;
-    finished_flag = false;
+    optimizer->reset(level);
+  }
+}
 
-    csa->reset(level);
+/// @brief Goes before the cost function
+/// @param point The point to be analyzed
+void Autotuning::run(int *point, double _cost) {
+  // End execution
+  if (!optimizer->isEnd()) {
+#ifdef _OPENMP
+#pragma omp barrier
+#pragma omp single
+#endif
+    {
+      // Itaration ignore test
+      double *d_point;
+      if (((++iteration) % ignore) == 0) {
+        d_point = optimizer->run(_cost);
+        rescale(point, d_point);
+      }
+    }
   }
 }
 
@@ -101,85 +96,51 @@ void Autotuning::reset(int level) {
 /// @param point The point to be analyzed
 void Autotuning::start(int *point) {
   // End execution
-  if (!finished_flag) {
+  if (!optimizer->isEnd()) {
 #ifdef _OPENMP
 #pragma omp barrier
 #pragma omp single
 #endif
     {
-#ifdef _OPENMP
-      t1 = omp_get_wtime();
-#endif
-      runtime = (t1 - t0);
+      double *d_point;
 
       // Itaration ignore test
       if (((++iteration) % ignore) == 0) {
-        // Cost values save
-        if (iOpt > 0 && iOpt <= csa->num_opt) {
-          cost[iOpt - 1] = runtime;
-        }
-        // Return to aplication the next solution
-        if (iOpt < csa->num_opt) {
-          // reScaleToInt(point, csa->solution[iOpt], min, max, csa->dim);
-          rescale(point, csa->solution[iOpt]);
-          iOpt += 1;
-        } else {
-          csa->partial_exec(cost);
-          if (csa->step == END) {  // End execution, return best solution
-            finished_flag = true;
-            rescale(point, csa->best_sol);
-          } else {  // Return first optimazate
-            rescale(point, csa->solution[0]);
-            iOpt = 1;
-          }
-        }
+        d_point = optimizer->run(runtime);
+        rescale(point, d_point);
       }
-#ifdef _OPENMP
+      // printf("%i ", point[0]);
+
+      // t0 = std::chrono::high_resolution_clock::now();
       t0 = omp_get_wtime();
-#endif
     }
   }
 }
 
 /// @brief Goes after the cost function
 void Autotuning::end() {
-  if (!finished_flag) {
+  if (!optimizer->isEnd()) {
 #ifdef _OPENMP
 #pragma omp single
 #endif
     {
-#ifdef _OPENMP
       t1 = omp_get_wtime();
-#endif
-      runtime = (t1 - t0);
+      // t1 = std::chrono::high_resolution_clock::now();
+      // std::chrono::duration<double> elapsed = t1 - t0;
+      // std::chrono::duration_cast<std::chrono::microseconds>(t1 - t0).count();
+      runtime = t0 - t1;
+      printf("%lf %lf %lf\n", runtime, t0, t1);
     }
   }
 }
 
 /// @brief Printe class basic information
 void Autotuning::print() {
-  int *aux = new int[csa->dim];
   std::cout << "------------------- Autotuning Parameters -------------------"
             << std::endl;
-  std::cout << "Dim: " << csa->dim << "\tNOpt: " << csa->num_opt
-            << "\tNIgn: " << ignore
-            << "\tNEval: " << (csa->max_iter * csa->num_opt * ignore)
-            << std::endl;
+  std::cout << "\tNIgn: " << ignore;
   std::cout << "Min: " << min << "\tMax: " << max << std::endl;
-  std::cout << "{";
-  for (int i = 0; i < csa->num_opt; i++) {
-    std::cout << "[" << i << ", ";
-    std::cout << "(";
-    // reScaleToInt(aux, csa->solution[i], min, max, csa->dim);
-    rescale(aux, csa->solution[i]);
-    for (int j = 0; j < csa->dim; j++) {
-      std::cout << aux[j] << ((j < csa->dim - 1) ? "," : "");
-    }
-    std::cout << ")";
-    std::cout << "]" << ((i < csa->num_opt - 1) ? "\t" : "");
-  }
-  std::cout << "}" << std::endl;
+  optimizer->print();
   std::cout << "-------------------------------------------------------------"
             << std::endl;
-  delete[] aux;
 }

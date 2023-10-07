@@ -1,43 +1,70 @@
 #ifndef AUTOTUNING_H
 #define AUTOTUNING_H
 
-#include "CSA.hpp"
+#include <chrono>  // time_point, now, duration
 
-#define AUTOTUNING_RUN(AT, VALUE)      \
-  while (!(AT)->finished()) {          \
-    (AT)->start(&(VALUE));             \
-    /* Your original code goes here */ \
-    (AT)->end();                       \
-  }
+#include "NumericalOptimizer.hpp"
+
+typedef void (*FunctionPointer)(int, ...);
 
 class Autotuning {
- private:
-  // Global Variables
-  bool finished_flag;  // Flag for Auto-tuning end executation
-  int min;             // Minimum value of search interval
-  int max;             // Maximum value of search interval
-  int iteration;       // Iteration number
-  int ignore;          // Numeber of ignore recive values
-  double *cost;        // Cost value [f(point)]
+  int min;        // Minimum value of search interval
+  int max;        // Maximum value of search interval
+  int iteration;  // Iteration number
+  int ignore;     // Numeber of ignore recive values
+  double cost;
 
-  double t0, t1;   // Starting and Ending Times
+  // std::chrono::high_resolution_clock::time_point t0,
+  //     t1;          // Starting and Ending Times
+  double t0, t1;
   double runtime;  // Total time of a task
 
-  // CSA Variables
-  CSA *csa;  // Class with valiables specific of the 'csa->h'
-  int iOpt;  // Iterator for optimizers reciver to csa()
-             // double **optPoints;  // CSA optimizers points
-             // int *allPoints;
+  NumericalOptimizer *optimizer;
 
   void rescale(double *out, int *in) const;
   void rescale(int *out, double *in) const;
 
  public:
-  auto finished() const -> bool { return finished_flag; }
+  bool isEnd() const { return optimizer->isEnd(); }
+  void run(int *point, double _cost);
   void start(int *point);
   void end();
   void print();
   void reset(int level);
+
+  template <typename Func, typename... Args>
+  int *execOfflineRuntime(Func function, Args... args) {
+    int *point = new int[optimizer->getDimension()];
+    while (!isEnd()) {
+      start(point);
+      function(point, args...);
+      end();
+    }
+    return point;
+  }
+
+  template <typename Func, typename... Args>
+  int *execOffline(Func function, Args... args) {
+    int *point = new int[optimizer->getDimension()];
+    while (!isEnd()) {
+      run(point, cost);
+      cost = function(point, args...);
+    }
+    return point;
+  }
+
+  template <typename Func, typename... Args>
+  void execOnlineRuntime(Func function, int *point, Args... args) {
+    start(point);
+    function(point, args...);
+    end();
+  }
+
+  template <typename Func, typename... Args>
+  void execOnline(Func function, int *point, Args... args) {
+    run(point, cost);
+    cost = function(point, args...);
+  }
 
   auto operator=(Autotuning) -> Autotuning = delete;
   auto operator=(Autotuning &&) -> Autotuning & = delete;
@@ -45,12 +72,9 @@ class Autotuning {
   Autotuning(Autotuning &&) = delete;
 
   Autotuning() = default;
-  Autotuning(int _dim, int _min, int _max, int _ignore, int _num_opt,
-             int _numInt);
-  ~Autotuning() {
-    delete[] cost;
-    delete csa;
-  }
+  Autotuning(int dim, int _min, int _max, int _ignore, int num_opt,
+             int max_iter);
+  Autotuning(int _min, int _max, int _ignore, NumericalOptimizer *_optimizer);
+  ~Autotuning() { delete optimizer; }
 };
-
 #endif

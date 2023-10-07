@@ -1,4 +1,2 @@
-add_library (autotuning STATIC
-  Autotuning.cpp
-  CSA.cpp
-)
+file (GLOB SOURCES "*.cpp")
+add_library (autotuning STATIC ${SOURCES})
