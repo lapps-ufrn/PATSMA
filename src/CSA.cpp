@@ -13,7 +13,7 @@
 /// @param out the output solution vector
 /// @param in the input solution vector
 inline void CSA::copy_solution(double *out, double *in) const {
-  memcpy(out, in, dim * sizeof(double));
+  memcpy(out, in, m_dim * sizeof(double));
 }
 
 /// @brief Make round shift for values < -1 and > 1
@@ -34,16 +34,16 @@ auto CSA::rotate(double value) -> double {
 /// maximum
 /// @param i Switch position
 void CSA::swap_opt_info(int i) {
-  double *temp = opts[i].probSol;
-  opts[i].probSol = opts[i].curSol;
-  opts[i].curSol = temp;
+  double *temp = m_opts[i].probSol;
+  m_opts[i].probSol = m_opts[i].curSol;
+  m_opts[i].curSol = temp;
 
-  tmp = opts[i].probCost;
-  opts[i].probCost = opts[i].curCost;
-  opts[i].curCost = tmp;
+  m_tmp = m_opts[i].probCost;
+  m_opts[i].probCost = m_opts[i].curCost;
+  m_opts[i].curCost = m_tmp;
 
-  if (opts[i].curCost > max_cost) {
-    max_cost = opts[i].curCost;
+  if (m_opts[i].curCost > m_maxCost) {
+    m_maxCost = m_opts[i].curCost;
   }
 }
 
@@ -56,32 +56,32 @@ void CSA::reset(int level) {
   int i, j;
   switch (level) {
     case 0:  // Remove infomation of best solution
-      best_cost = DBL_MAX;
-      memset(best_sol, 0, dim * sizeof(double));
+      m_bestCost = DBL_MAX;
+      memset(m_bestSol, 0, m_dim * sizeof(double));
 
     case 1:  // Reset points and temperatures
-      step = 0;
-      tgen = TG;
-      tac = TA;
-      max_cost = DBL_MIN;
-      tmp = 0;
-      prob_var = 0;
+      m_step = 0;
+      m_tGen = TG;
+      m_tAcc = TA;
+      m_maxCost = DBL_MIN;
+      m_tmp = 0;
+      m_probVar = 0;
 
       // Inital points generate
-      for (i = 0; i < num_opt; i++) {
-        for (j = 0; j < dim; j++) {
-          drand48_r(&opts[i].buffer, &opts[i].result);
-          opts[i].probSol[j] = (opts[i].result * 2.0 - 1.0);
-          opts[i].curSol[j] = opts[i].probSol[j];  // Copy Initial Solutions
+      for (i = 0; i < m_nOpt; i++) {
+        for (j = 0; j < m_dim; j++) {
+          drand48_r(&m_opts[i].buffer, &m_opts[i].result);
+          m_opts[i].probSol[j] = (m_opts[i].result * 2.0 - 1.0);
+          m_opts[i].curSol[j] = m_opts[i].probSol[j];  // Copy Initial Solutions
         }
-        opts[i].curCost = DBL_MAX;
-        opts[i].probCost = DBL_MAX;
+        m_opts[i].curCost = DBL_MAX;
+        m_opts[i].probCost = DBL_MAX;
       }
 
     case 2:  // Reset only number of iteretions
-      iter = 0;
-      i_opt = 0;
-      if (step == END) step = 1;
+      m_iter = 0;
+      m_iOpt = 0;
+      if (m_step == END) m_step = 1;
       break;
 
     default:
@@ -109,33 +109,33 @@ CSA::CSA(int _num_opt, int _dim, int _max_iter) {
 
   int i, j;
 
-  this->i_opt = 0;
-  this->iter = 0;
-  this->step = 0;
-  this->num_opt = _num_opt;
-  this->dim = _dim;
+  this->m_iOpt = 0;
+  this->m_iter = 0;
+  this->m_step = 0;
+  this->m_nOpt = _num_opt;
+  this->m_dim = _dim;
   try {
-    this->max_iter = (int)(_max_iter / (double)_num_opt);
+    this->m_maxIter = (int)(_max_iter / (double)_num_opt);
   } catch (std::runtime_error &e) {
     std::cout << "Exception occurred" << std::endl << e.what();
   }
 
-  this->tgen = TG;
-  this->tac = TA;
-  this->gamma = 0.0;
-  this->best_cost = DBL_MAX;
+  this->m_tGen = TG;
+  this->m_tAcc = TA;
+  this->m_gamma = 0.0;
+  this->m_bestCost = DBL_MAX;
 
-  this->max_cost = DBL_MIN;
-  this->tmp = 0;
-  this->prob_var = 0;
+  this->m_maxCost = DBL_MIN;
+  this->m_tmp = 0;
+  this->m_probVar = 0;
 
   try {
-    point = new double[dim];
-    opts = new Opt[num_opt];
-    best_sol = new double[dim];
-    for (i = 0; i < num_opt; i++) {
-      opts[i].curSol = new double[dim];
-      opts[i].probSol = new double[dim];
+    m_point = new double[m_dim];
+    m_opts = new Opt[m_nOpt];
+    m_bestSol = new double[m_dim];
+    for (i = 0; i < m_nOpt; i++) {
+      m_opts[i].curSol = new double[m_dim];
+      m_opts[i].probSol = new double[m_dim];
     }
   } catch (const std::bad_alloc &e) {
     std::cout << "Memory Allocation"
@@ -144,19 +144,19 @@ CSA::CSA(int _num_opt, int _dim, int _max_iter) {
 
   // Step 1: Initialize variables [Optimizers]
   srand(time(nullptr));
-  for (i = 0; i < num_opt; i++) {
-    opts[i].id = i;
-    opts[i].curCost = DBL_MAX;
-    opts[i].probCost = DBL_MAX;
-    srand48_r(rand(), &opts[i].buffer);
+  for (i = 0; i < m_nOpt; i++) {
+    m_opts[i].id = i;
+    m_opts[i].curCost = DBL_MAX;
+    m_opts[i].probCost = DBL_MAX;
+    srand48_r(rand(), &m_opts[i].buffer);
   }
 
   // Step 1.1: Generate inital points
-  for (i = 0; i < num_opt; i++) {
-    for (j = 0; j < dim; j++) {
-      drand48_r(&opts[i].buffer, &opts[i].result);
-      opts[i].probSol[j] = (opts[i].result * 2.0 - 1.0);
-      opts[i].curSol[j] = opts[i].probSol[j];  // Copy Initial Solutions
+  for (i = 0; i < m_nOpt; i++) {
+    for (j = 0; j < m_dim; j++) {
+      drand48_r(&m_opts[i].buffer, &m_opts[i].result);
+      m_opts[i].probSol[j] = (m_opts[i].result * 2.0 - 1.0);
+      m_opts[i].curSol[j] = m_opts[i].probSol[j];  // Copy Initial Solutions
     }
   }
 }
@@ -166,91 +166,92 @@ CSA::CSA(int _num_opt, int _dim, int _max_iter) {
 void CSA::partial_exec() {
   int k, j, i;
 
-  while (step != END) {
-    switch (step) {
+  while (m_step != END) {
+    switch (m_step) {
       case 0:
         // Step 2: Initial points
-        for (i = 0; i < num_opt; i++) {
-          opts[i].curCost = opts[i].probCost;  // Copy initial costs
-          if (opts[i].curCost < best_cost) {   // Find the best solution
-            best_cost = opts[i].curCost;
-            copy_solution(best_sol, opts[i].curSol);
+        for (i = 0; i < m_nOpt; i++) {
+          m_opts[i].curCost = m_opts[i].probCost;  // Copy initial costs
+          if (m_opts[i].curCost < m_bestCost) {    // Find the best solution
+            m_bestCost = m_opts[i].curCost;
+            copy_solution(m_bestSol, m_opts[i].curSol);
           }
-          if (max_cost < opts[i].curCost) {  // Find the max cost
-            max_cost = opts[i].curCost;
+          if (m_maxCost < m_opts[i].curCost) {  // Find the max cost
+            m_maxCost = m_opts[i].curCost;
           }
         }
-        // Step 3: Calculate gamma
-        gamma = 0;
-        for (i = 0; i < num_opt; i++) {
-          gamma += exp((opts[i].curCost - max_cost) / tac);
+        // Step 3: Calculate m_gamma
+        m_gamma = 0;
+        for (i = 0; i < m_nOpt; i++) {
+          m_gamma += exp((m_opts[i].curCost - m_maxCost) / m_tAcc);
         }
 
       case 1:
         // Step 4: Generated New Points
-        for (i = 0; i < num_opt; i++) {
-          for (j = 0; j < dim; j++) {
-            drand48_r(&opts[i].buffer, &opts[i].result);
-            opts[i].result = tan(M_PI * (opts[i].result - 0.5));
-            opts[i].probSol[j] =
-                rotate(opts[i].curSol[j] + tgen * opts[i].result);
+        for (i = 0; i < m_nOpt; i++) {
+          for (j = 0; j < m_dim; j++) {
+            drand48_r(&m_opts[i].buffer, &m_opts[i].result);
+            m_opts[i].result = tan(M_PI * (m_opts[i].result - 0.5));
+            m_opts[i].probSol[j] =
+                rotate(m_opts[i].curSol[j] + m_tGen * m_opts[i].result);
           }
         }
-        step = 2;
+        m_step = 2;
         return;
 
       case 2:
         // Step 5: Define if accept new solution
-        for (i = 0; i < num_opt; i++) {
+        for (i = 0; i < m_nOpt; i++) {
           // Step 5.1: If new soluiton is better
-          if (opts[i].probCost < opts[i].curCost) {
+          if (m_opts[i].probCost < m_opts[i].curCost) {
             swap_opt_info(i);
             // Step 5.1.2: Better global solution
-            if (opts[i].curCost < best_cost) {
-              best_cost = opts[i].curCost;
-              copy_solution(best_sol, opts[i].curSol);
+            if (m_opts[i].curCost < m_bestCost) {
+              m_bestCost = m_opts[i].curCost;
+              copy_solution(m_bestSol, m_opts[i].curSol);
             }
           }
           // Step 5.2: Else test probability of accept
           else {
-            drand48_r(&opts[i].buffer, &opts[i].result);
-            opts[i].prob = exp((opts[i].curCost - max_cost) / tac) / gamma;
+            drand48_r(&m_opts[i].buffer, &m_opts[i].result);
+            m_opts[i].prob =
+                exp((m_opts[i].curCost - m_maxCost) / m_tAcc) / m_gamma;
 
-            if (opts[i].prob > opts[i].result) {
+            if (m_opts[i].prob > m_opts[i].result) {
               swap_opt_info(i);
             }
           }
         }  // Optimizers
 
         // Step 6: Stop criterium
-        if ((++iter) >= max_iter) {
-          step = END;
+        if ((++m_iter) >= m_maxIter) {
+          m_step = END;
           break;
         }
         // Step 7: Update variables
         else {
-          step = 1;
-          // Step 7.1: Calculate gamma (same that step 3)
-          gamma = tmp = 0.0;
-          for (k = 0; k < num_opt; k++) {
-            gamma += exp((opts[k].curCost - max_cost) / tac);
-            tmp += exp(2.0 * (opts[k].curCost - max_cost) / tac);
+          m_step = 1;
+          // Step 7.1: Calculate m_gamma (same that m_step 3)
+          m_gamma = m_tmp = 0.0;
+          for (k = 0; k < m_nOpt; k++) {
+            m_gamma += exp((m_opts[k].curCost - m_maxCost) / m_tAcc);
+            m_tmp += exp(2.0 * (m_opts[k].curCost - m_maxCost) / m_tAcc);
           }
           // Step 7.2: Update accept temperature
-          tmp = tmp / (gamma * gamma);
-          prob_var =
-              (tmp * ((double)(num_opt)) - 1.0) / ((double)num_opt - 1.0);
-          if (prob_var >= 0.99) {
-            tac += 0.05 * tac;
+          m_tmp = m_tmp / (m_gamma * m_gamma);
+          m_probVar =
+              (m_tmp * ((double)(m_nOpt)) - 1.0) / ((double)m_nOpt - 1.0);
+          if (m_probVar >= 0.99) {
+            m_tAcc += 0.05 * m_tAcc;
           } else {
-            tac -= 0.05 * tac;
+            m_tAcc -= 0.05 * m_tAcc;
           }
           // Step 7.3: Update generation temperature
-          // tgen = tgen * log((double)iter+2.0)/log((double)iter+3.0);
-          // tgen = tgen * ((double)iter+1.0)/((double)iter+2.0);
-          // tgen = TGEN/log((double)iter+2.);
-          // tgen = TGEN/((double)iter+1.);
-          tgen = 0.99997 * tgen;
+          // m_tGen = m_tGen * log((double)m_iter+2.0)/log((double)m_iter+3.0);
+          // m_tGen = m_tGen * ((double)m_iter+1.0)/((double)m_iter+2.0);
+          // m_tGen = TGEN/log((double)m_iter+2.);
+          // m_tGen = TGEN/((double)m_iter+1.);
+          m_tGen = 0.99997 * m_tGen;
         }
         break;
     }
@@ -259,50 +260,50 @@ void CSA::partial_exec() {
 
 double *CSA::run(double cost) {
   // Save costs as Probable costs values
-  if (i_opt > 0 && i_opt <= num_opt) {
-    opts[i_opt - 1].probCost = cost;
+  if (m_iOpt > 0 && m_iOpt <= m_nOpt) {
+    m_opts[m_iOpt - 1].probCost = cost;
   }
   // Return to aplication the next solution
-  if (i_opt < num_opt) {
-    copy_solution(point, opts[i_opt].probSol);
-    i_opt += 1;
+  if (m_iOpt < m_nOpt) {
+    copy_solution(m_point, m_opts[m_iOpt].probSol);
+    m_iOpt += 1;
   } else {
     partial_exec();
-    if (step == END) {  // End execution, return best solution
-      copy_solution(point, best_sol);
+    if (m_step == END) {  // End execution, return best solution
+      copy_solution(m_point, m_bestSol);
     } else {  // Return first optimazate
-      copy_solution(point, opts[0].probSol);
-      i_opt = 1;
+      copy_solution(m_point, m_opts[0].probSol);
+      m_iOpt = 1;
     }
   }
 
-  return point;
+  return m_point;
 }
 
 /// @brief Destructor
 CSA::~CSA() {
-  delete[] point;
-  delete[] best_sol;
-  for (int i = 0; i < num_opt; i++) {
-    delete[] opts[i].curSol;
-    delete[] opts[i].probSol;
+  delete[] m_point;
+  delete[] m_bestSol;
+  for (int i = 0; i < m_nOpt; i++) {
+    delete[] m_opts[i].curSol;
+    delete[] m_opts[i].probSol;
   }
-  delete[] opts;
+  delete[] m_opts;
 }
 
 void CSA::print() const {
   std::cout << "----------- CSA Parameters -----------" << std::endl;
-  std::cout << "Dim: " << dim << "\tNOpt: " << num_opt
-            << "\tNEval: " << (max_iter * num_opt) << std::endl;
+  std::cout << "Dim: " << m_dim << "\tNOpt: " << m_nOpt
+            << "\tNEval: " << (m_maxIter * m_nOpt) << std::endl;
   std::cout << "{";
-  for (int i = 0; i < num_opt; i++) {
+  for (int i = 0; i < m_nOpt; i++) {
     std::cout << "[" << i << ", ";
     std::cout << "(";
-    for (int j = 0; j < dim; j++) {
-      std::cout << opts[i].probSol[j] << ((j < dim - 1) ? "," : "");
+    for (int j = 0; j < m_dim; j++) {
+      std::cout << m_opts[i].probSol[j] << ((j < m_dim - 1) ? "," : "");
     }
     std::cout << ")";
-    std::cout << "]" << ((i < num_opt - 1) ? "\t" : "");
+    std::cout << "]" << ((i < m_nOpt - 1) ? "\t" : "");
   }
   std::cout << "}" << std::endl;
   std::cout << "---------------------------------------" << std::endl;

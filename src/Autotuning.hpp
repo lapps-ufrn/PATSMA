@@ -1,80 +1,178 @@
-#ifndef AUTOTUNING_H
-#define AUTOTUNING_H
+/**
+ * @file Autotuning.hpp
+ * @brief Header file for the Autotuning class
+ */
 
-#include <chrono>  // time_point, now, duration
+#pragma once
 
 #include "NumericalOptimizer.hpp"
 
-typedef void (*FunctionPointer)(int, ...);
-
+/**
+ * @brief Class for Autotuning
+ */
 class Autotuning {
-  int min;        // Minimum value of search interval
-  int max;        // Maximum value of search interval
-  int iteration;  // Iteration number
-  int ignore;     // Numeber of ignore recive values
-  double cost;
+  double m_min;  ///< Minimum value of the search interval
+  double m_max;  ///< Maximum value of the search interval
+  int m_iter;    ///< Iteration number
+  int m_ignore;  ///< Number of iterations to ignore
 
-  // std::chrono::high_resolution_clock::time_point t0,
-  //     t1;          // Starting and Ending Times
-  double t0, t1;
-  double runtime;  // Total time of a task
+  double m_t0, m_t1;  ///< Time starting and ending
+  double m_runtime;   ///< Total time of a task
 
-  NumericalOptimizer *optimizer;
+  NumericalOptimizer *p_optimizer;  ///< Numerical optimizer instance
 
-  void rescale(double *out, int *in) const;
-  void rescale(int *out, double *in) const;
+  /**
+   * @brief Rescale point from Type [-1,1] to Floating [min,max]
+   * @param out Output int point
+   * @param in Input double point
+   */
+  template <typename POINT>
+  void rescale(POINT *out, double *in) const;
+
+  /**
+   * @brief Check if the optimization has ended
+   * @return True if optimization has ended, false otherwise
+   */
+  bool isEnd() const { return p_optimizer->isEnd(); }
+
+  /**
+   * @brief Run the autotuning algorithm
+   * @param point Input/output array of tuning parameters
+   * @param _cost Cost value for the current iteration
+   */
+  template <typename POINT = int, typename COST = double>
+  void run(POINT *point, COST _cost);
+
+  /**
+   * @brief Start a new iteration of the autotuning algorithm
+   * @param point Input/output array of tuning parameters
+   */
+  template <typename POINT>
+  void start(POINT *point);
+
+  /**
+   * @brief End the current iteration of the autotuning algorithm
+   */
+  void end();
 
  public:
-  bool isEnd() const { return optimizer->isEnd(); }
-  void run(int *point, double _cost);
-  void start(int *point);
-  void end();
+  /**
+   * @brief Print basic information about the autotuning parameters
+   */
   void print();
+
+  /**
+   * @brief Reset the autotuning and numerical optimizer
+   * @param level Reset level:
+   *   - level 2: Reset the number of iterations
+   *   - level 1: Reset the points and the temperatures (plus the previous ones)
+   *   - level 0: Remove the best solution (plus the previous ones)
+   */
   void reset(int level);
 
-  template <typename Func, typename... Args>
-  int *execOfflineRuntime(Func function, Args... args) {
-    int *point = new int[optimizer->getDimension()];
-    while (!isEnd()) {
-      start(point);
-      function(point, args...);
-      end();
-    }
-    return point;
-  }
+  /**
+   * @brief Execute the autotuning algorithm offline with runtime measurement
+   * @tparam Func Type of the cost function
+   * @tparam Args Types of additional arguments to the cost function
+   * @param function Cost function to be optimized
+   * @param args Additional arguments to the cost function
+   * @return Output array of optimized tuning parameters
+   */
+  template <typename POINT = int, typename Func, typename... Args>
+  POINT *execOfflineRuntime(Func function, Args... args);
 
-  template <typename Func, typename... Args>
-  int *execOffline(Func function, Args... args) {
-    int *point = new int[optimizer->getDimension()];
-    while (!isEnd()) {
-      run(point, cost);
-      cost = function(point, args...);
-    }
-    return point;
-  }
+  /**
+   * @brief Execute the autotuning algorithm offline
+   * @tparam Func Type of the cost function
+   * @tparam Args Types of additional arguments to the cost function
+   * @param function Cost function to be optimized
+   * @param args Additional arguments to the cost function
+   * @return Output array of optimized tuning parameters
+   */
+  template <typename POINT = int, typename COST = double, typename Func,
+            typename... Args>
+  POINT *execOffline(Func function, Args... args);
 
-  template <typename Func, typename... Args>
-  void execOnlineRuntime(Func function, int *point, Args... args) {
-    start(point);
-    function(point, args...);
-    end();
-  }
+  /**
+   * @brief Execute the autotuning algorithm online with runtime measurement
+   * @tparam Func Type of the cost function
+   * @tparam Args Types of additional arguments to the cost function
+   * @param function Cost function to be optimized
+   * @param point Input/output array of tuning parameters
+   * @param args Additional arguments to the cost function
+   */
+  template <typename POINT = int, typename Func, typename... Args>
+  void execOnlineRuntime(Func function, POINT *point, Args... args);
 
-  template <typename Func, typename... Args>
-  void execOnline(Func function, int *point, Args... args) {
-    run(point, cost);
-    cost = function(point, args...);
-  }
+  /**
+   * @brief Execute the autotuning algorithm online
+   * @tparam Func Type of the cost function
+   * @tparam Args Types of additional arguments to the cost function
+   * @param function Cost function to be optimized
+   * @param point Input/output array of tuning parameters
+   * @param args Additional arguments to the cost function
+   */
+  template <typename POINT = int, typename COST = double, typename Func,
+            typename... Args>
+  void execOnline(Func function, POINT *point, Args... args);
 
+  /**
+   * @brief Deleted copy assignment operator
+   * @param Autotuning Object to be assigned
+   * @return Deleted assignment operator
+   */
   auto operator=(Autotuning) -> Autotuning = delete;
+
+  /**
+   * @brief Deleted move assignment operator
+   * @param Autotuning Object to be moved
+   * @return Deleted move assignment operator
+   */
   auto operator=(Autotuning &&) -> Autotuning & = delete;
+
+  /**
+   * @brief Deleted copy constructor
+   * @param Autotuning Object to be copied
+   */
   Autotuning(const Autotuning &) = delete;
+
+  /**
+   * @brief Deleted move constructor
+   * @param Autotuning Object to be moved
+   */
   Autotuning(Autotuning &&) = delete;
 
+  /**
+   * @brief Default constructor
+   */
   Autotuning() = default;
-  Autotuning(int dim, int _min, int _max, int _ignore, int num_opt,
+
+  /**
+   * @brief Parameterized constructor with CSA as the default optimizer
+   * @param dim Cost Function Dimension
+   * @param _min Minimum value of the search interval
+   * @param _max Maximum value of the search interval
+   * @param _ignore Number of iterations to ignore
+   * @param num_opt Number of optimizers
+   * @param max_iter Maximum number of iterations
+   */
+  Autotuning(int dim, double _min, double _max, int _ignore, int num_opt,
              int max_iter);
-  Autotuning(int _min, int _max, int _ignore, NumericalOptimizer *_optimizer);
-  ~Autotuning() { delete optimizer; }
+
+  /**
+   * @brief Parameterized constructor with a custom optimizer
+   * @param _min Minimum value of the search interval
+   * @param _max Maximum value of the search interval
+   * @param _ignore Number of iterations to ignore
+   * @param _optimizer Numerical optimizer instance
+   */
+  Autotuning(double _min, double _max, int _ignore,
+             NumericalOptimizer *p_optimizer);
+
+  /**
+   * @brief Destructor
+   */
+  ~Autotuning();
 };
-#endif
+
+#include "Autotuning.tpp"

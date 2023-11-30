@@ -1,8 +1,6 @@
 #pragma once
 
 class NumericalOptimizer {
-  friend class Autotuning;
-
  public:
   NumericalOptimizer(){};
   virtual ~NumericalOptimizer() {}

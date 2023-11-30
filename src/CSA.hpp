@@ -1,3 +1,9 @@
+/**
+ * @file CSA.hpp
+ * @brief Definition of the CSA class, a Coupled Simulated Annealing
+ * optimization algorithm.
+ */
+
 #ifndef _CSA_
 #define _CSA_
 
@@ -21,48 +27,74 @@
 #define TA 0.9
 #endif
 
-// #define MAXITER 200
-// #define TGEN 0.1
-
 #define END 0x99
 
+/**
+ * @class CSA
+ * @brief Coupled Simulated Annealing (CSA) optimization algorithm.
+ *
+ * This class implements the CSA algorithm, a heuristic optimization method that
+ * simulates the annealing process coupled with multiple optimizers.
+ */
 class CSA : public NumericalOptimizer {
   struct Opt {
-    int id;           // id
-    double *curSol;   // Solução atual     [* Dimensões]
-    double *probSol;  // Solução provável  [* Dimensões]
-    struct drand48_data buffer;
-    double curCost;   // Custo atual
-    double probCost;  // Custo da solução provável
-    // Auxiliars
-    double prob;
-    double result;
+    int id;          /**< Identifier for the optimizer. */
+    double *curSol;  /**< Current solution vector. */
+    double *probSol; /**< Probable solution vector. */
+    double curCost;  /**< Current cost associated with the current solution. */
+    double probCost; /**< Cost associated with the probable solution. */
+    // Auxiliaries
+    double prob;                /**< Probability value. */
+    double result;              /**< Result of a random number generation. */
+    struct drand48_data buffer; /**< Buffer for random number generation. */
   };
 
-  int step;
-  int iter;      // Iteration
-  int max_iter;  // Max number of iterations
+  int m_step;    /**< Current step in the optimization process. */
+  int m_iter;    /**< Iteration count. */
+  int m_maxIter; /**< Maximum number of iterations. */
 
-  int i_opt;    // Iterator for Optimizers
-  int num_opt;  // Number of Optimizers
-  int dim;      // Number of Dimensions
+  int m_iOpt; /**< Iterator for Optimizers. */
+  int m_nOpt; /**< Number of Optimizers. */
+  int m_dim;  /**< Number of Dimensions. */
 
-  double tgen;  // Generation Temperature
-  double tac;   // Acceptance Temperature
-  double gamma;
-  double max_cost;  // Maximum cost value
-  double tmp;
-  double prob_var;
+  double m_tGen;    /**< Generation Temperature. */
+  double m_tAcc;    /**< Acceptance Temperature. */
+  double m_gamma;   /**< Gamma value used in the algorithm. */
+  double m_maxCost; /**< Maximum cost value. */
+  double m_tmp;     /**< Temporary variable. */
+  double m_probVar; /**< Probability variable. */
 
-  double *best_sol;  // Best Solution [* Dimensões]
-  double best_cost;  // Best Cost relative to best solution
+  double *m_bestSol; /**< Best Solution vector. */
+  double m_bestCost; /**< Best Cost relative to the best solution. */
 
-  struct Opt *opts;  // Optimizers
-  double *point;     // Point to return
+  struct Opt *m_opts; /**< Array of Optimizers. */
+  double *m_point;    /**< Point to return. */
 
-  void swap_opt_info(int i);
+  /**
+   * @brief Copy the solution vector.
+   * @param out The output solution vector.
+   * @param in The input solution vector.
+   */
   void copy_solution(double *out, double *in) const;
-  static double rotate(double value);
+
+  /**
+   * @brief Make a round shift for values < -1 and > 1.
+   * @param value The m_point.
+   * @return The m_point between -1 and 1.
+   */
+  auto rotate(double value) -> double;
+
+  /**
+   * @brief Switch values in vector position [i] from current solution to
+   * solution, same from current cost to cost, and check if this new cost is the
+   * maximum.
+   * @param i Switch position.
+   */
+  void swap_opt_info(int i);
+
+  /**
+   * @brief Perform partial execution of the CSA algorithm.
+   */
   void partial_exec();
 
   CSA() = delete;
@@ -72,15 +104,57 @@ class CSA : public NumericalOptimizer {
   CSA(CSA &&) = delete;
 
  public:
-  int getNumPoints() const override { return num_opt; }
-  int getDimension() const override { return dim; }
-  void print() const override;
-  void reset(int level) override;
-  bool isEnd() const override { return step == END; }
+  /**
+   * @brief Constructor for the CSA class.
+   * @param _num_opt Number of optimizers.
+   * @param _dim Dimension of the cost function.
+   * @param _max_iter Maximum number of iterations.
+   */
+  CSA(int _num_opt, int _dim, int _max_iter);
+
+  /**
+   * @brief Destructor for the CSA class.
+   */
+  ~CSA();
+
+  /**
+   * @brief Get the number of points (optimizers) used in the CSA algorithm.
+   * @return Number of optimizers.
+   */
+  int getNumPoints() const override { return m_nOpt; }
+
+  /**
+   * @brief Get the dimension of the cost function.
+   * @return Dimension of the cost function.
+   */
+  int getDimension() const override { return m_dim; }
+
+  /**
+   * @brief Check if the optimization process has reached its end.
+   * @return True if the optimization is complete, false otherwise.
+   */
+  bool isEnd() const override { return m_step == END; }
+
+  /**
+   * @brief Run the CSA algorithm to generate the next solution.
+   * @param cost The cost of the current solution.
+   * @return A pointer to the next solution generated by the algorithm.
+   */
   double *run(double cost) override;
 
-  CSA(int _num_opt, int _dim, int _max_iter);
-  ~CSA();
+  /**
+   * @brief Print the parameters and state of the CSA algorithm.
+   */
+  void print() const override;
+
+  /**
+   * @brief Reset the CSA algorithm to a specified level.
+   * @param level The level of resetting:
+   *    - level 2: Reset the number of iterations.
+   *    - level 1: Reset the points and temperatures (plus the previous ones).
+   *    - level 0: Remove the best solution (plus the previous ones).
+   */
+  void reset(int level) override;
 };
 
 #endif
