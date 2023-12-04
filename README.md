@@ -1,7 +1,13 @@
-# auto-tuning
+# PATSMA -  Parameter Auto Tuning for Shared Memory Algorithms
 
+PATSMA is a parameter autotuning framework available for C++ applications.
 
-
+## Main Features
+<ul>
+    <li>Ability to set parameters<\li>
+    <li>Support to online autotuning<\li>
+    <li>Public API avaiable in C++<\li>
+<\ul>
 ## Getting started
 
 To make it easy for you to get started with GitLab, here's a list of recommended next steps.
