@@ -8,14 +8,14 @@
 #define DBL_MAX std::numeric_limits<double>::max()
 #endif
 
-NelderMead::NelderMead(int _dim, double _error) : m_dim(_dim) {
-  if (_dim < 1) {
-    throw std::invalid_argument("Dimensional Value Invalid! Set _dim > 0.");
+NelderMead::NelderMead(int dim, double error) : m_dim(dim), m_error(error) {
+  if (dim < 1) {
+    throw std::invalid_argument("Dimensional Value Invalid! Set dim > 0.");
   }
-  if (_error < 0) {
-    throw std::invalid_argument("Invalid m_error! Set _error >= 0.");
+  if (error < 0) {
+    throw std::invalid_argument("Invalid m_error! Set error >= 0.");
   }
-  m_nPoints = (_dim > 2) ? (_dim + 1) : 3;
+  m_nPoints = (dim > 2) ? (dim + 1) : 3;
 
   try {
     m_points = new double *[m_nPoints];
@@ -50,8 +50,6 @@ NelderMead::NelderMead(int _dim, double _error) : m_dim(_dim) {
   m_iPoint = 0;
   m_step = 0;
 
-  m_error = _error;
-
   for (int i = 0; i < m_nPoints; i++) {
     m_costs[i] = DBL_MAX;
   }
@@ -85,17 +83,14 @@ double *NelderMead::run(double _cost) {
       case 2:  // Reflection - Use m_alpha
         for (int j = 0; j < m_dim; j++) {
           m_pointReflection[j] =
-              fmod(m_centroid[j] +
-                       m_alpha * (m_centroid[j] - m_points[m_worstID][j]),
-                   1);
+              fmod(m_centroid[j] + m_alpha * (m_centroid[j] - m_points[m_worstID][j]), 1);
         }
         m_step = 3;
         return m_pointReflection;
 
       case 3:
         m_costReflection = _cost;
-        if (m_costs[m_bestID] <= m_costReflection &&
-            m_costReflection < m_costs[m_secondID]) {
+        if (m_costs[m_bestID] <= m_costReflection && m_costReflection < m_costs[m_secondID]) {
           swap(m_pointReflection, m_points[m_worstID]);
           m_costs[m_worstID] = m_costReflection;
           break;
@@ -103,9 +98,7 @@ double *NelderMead::run(double _cost) {
           // Calculate Expansion - Use m_gamma
           for (int j = 0; j < m_dim; j++) {
             m_pointExpansion[j] =
-                fmod(m_centroid[j] +
-                         m_gamma * (m_pointReflection[j] - m_centroid[j]),
-                     1);
+                fmod(m_centroid[j] + m_gamma * (m_pointReflection[j] - m_centroid[j]), 1);
           }
           m_step = 4;
           return m_pointExpansion;
@@ -113,9 +106,8 @@ double *NelderMead::run(double _cost) {
                    m_costReflection < m_costs[m_worstID]) {
           // Calculate Outside Contraction - Use m_rho
           for (int j = 0; j < m_dim; j++) {
-            m_pointContraction[j] = fmod(
-                m_centroid[j] + m_rho * (m_pointReflection[j] - m_centroid[j]),
-                1);
+            m_pointContraction[j] =
+                fmod(m_centroid[j] + m_rho * (m_pointReflection[j] - m_centroid[j]), 1);
           }
           m_step = 5;
           return m_pointContraction;
@@ -123,9 +115,7 @@ double *NelderMead::run(double _cost) {
           // Calculate Inside Contraction - Use m_rho
           for (int j = 0; j < m_dim; j++) {
             m_pointContraction[j] =
-                fmod(m_centroid[j] - m_rho * (m_centroid[j]) -
-                         m_points[m_worstID][j],
-                     1);
+                fmod(m_centroid[j] - m_rho * (m_centroid[j]) - m_points[m_worstID][j], 1);
           }
           m_step = 6;
           return m_pointContraction;
@@ -171,9 +161,7 @@ double *NelderMead::run(double _cost) {
         if (i != m_bestID) {
           for (int j = 0; j < m_dim; j++) {
             m_points[i][j] =
-                fmod(m_points[m_bestID][j] +
-                         m_sigma * (m_points[i][j] - m_points[m_bestID][j]),
-                     1);
+                fmod(m_points[m_bestID][j] + m_sigma * (m_points[i][j] - m_points[m_bestID][j]), 1);
           }
         }
       }
@@ -234,36 +222,31 @@ void NelderMead::reset(int level) {
   switch (level) {
     case 0:  // Reset with random m_points removing the best point
       for (int j = 0; j < m_dim; j++) {
-        drand48_r(&buffer, &m_result);  // random number in 'm_result'
-        m_points[m_bestID][j] =
-            (m_result * 2.0 - 1.0);  // numbers between -1 and 1.
+        drand48_r(&buffer, &m_result);                   // random number in 'm_result'
+        m_points[m_bestID][j] = (m_result * 2.0 - 1.0);  // numbers between -1 and 1.
       }
     case 1:  // Reset with random m_points keeping the best point
       for (int i = 0; i < m_nPoints; i++) {
         if (i != m_bestID) {
           for (int j = 0; j < m_dim; j++) {
-            drand48_r(&buffer, &m_result);  // random number in 'm_result'
-            m_points[i][j] =
-                (m_result * 2.0 - 1.0);  // numbers between -1 and 1.
+            drand48_r(&buffer, &m_result);            // random number in 'm_result'
+            m_points[i][j] = (m_result * 2.0 - 1.0);  // numbers between -1 and 1.
           }
         }
       }
       break;
 
     default:
-      throw std::runtime_error(
-          "There is not the Nelder-Mead reset option level " +
-          std::to_string(level));
+      throw std::runtime_error("There is not the Nelder-Mead reset option level " +
+                               std::to_string(level));
       break;
   }
 }
 
 double NelderMead::volume() {
-  double value = 0.0;
   double total = 0.0;
-
   for (int i = 0; i < m_nPoints; i++) {
-    value = 0.0;
+    double value = 0.0;
     for (int j = 0; j < m_dim; j++) {
       value += pow(m_points[i][j] - m_centroid[j], 2.0);
     }

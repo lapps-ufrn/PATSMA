@@ -4,8 +4,7 @@
  * optimization algorithm.
  */
 
-#ifndef _CSA_
-#define _CSA_
+#pragma once
 
 #include <cmath>
 #include <ctime>  // drand48_data
@@ -38,32 +37,30 @@
  */
 class CSA : public NumericalOptimizer {
   struct Opt {
-    int id;          /**< Identifier for the optimizer. */
-    double *curSol;  /**< Current solution vector. */
-    double *probSol; /**< Probable solution vector. */
-    double curCost;  /**< Current cost associated with the current solution. */
-    double probCost; /**< Cost associated with the probable solution. */
+    int id = 0;                /**< Identifier for the optimizer. */
+    double *curSol = nullptr;  /**< Current solution vector. */
+    double *probSol = nullptr; /**< Probable solution vector. */
+    double curCost = 0.0;      /**< Current cost associated with the current solution. */
+    double probCost = 0.0;     /**< Cost associated with the probable solution. */
     // Auxiliaries
-    double prob;                /**< Probability value. */
-    double result;              /**< Result of a random number generation. */
+    double prob = 0.0;          /**< Probability value. */
+    double result = 0.0;        /**< Result of a random number generation. */
     struct drand48_data buffer; /**< Buffer for random number generation. */
   };
 
   int m_step;    /**< Current step in the optimization process. */
   int m_iter;    /**< Iteration count. */
   int m_maxIter; /**< Maximum number of iterations. */
+  int m_iOpt;    /**< Iterator for Optimizers. */
+  int m_nOpt;    /**< Number of Optimizers. */
+  int m_dim;     /**< Number of Dimensions. */
 
-  int m_iOpt; /**< Iterator for Optimizers. */
-  int m_nOpt; /**< Number of Optimizers. */
-  int m_dim;  /**< Number of Dimensions. */
-
-  double m_tGen;    /**< Generation Temperature. */
-  double m_tAcc;    /**< Acceptance Temperature. */
-  double m_gamma;   /**< Gamma value used in the algorithm. */
-  double m_maxCost; /**< Maximum cost value. */
-  double m_tmp;     /**< Temporary variable. */
-  double m_probVar; /**< Probability variable. */
-
+  double m_tGen;     /**< Generation Temperature. */
+  double m_tAcc;     /**< Acceptance Temperature. */
+  double m_gamma;    /**< Gamma value used in the algorithm. */
+  double m_maxCost;  /**< Maximum cost value. */
+  double m_tmp;      /**< Temporary variable. */
+  double m_probVar;  /**< Probability variable. */
   double *m_bestSol; /**< Best Solution vector. */
   double m_bestCost; /**< Best Cost relative to the best solution. */
 
@@ -82,7 +79,7 @@ class CSA : public NumericalOptimizer {
    * @param value The m_point.
    * @return The m_point between -1 and 1.
    */
-  auto rotate(double value) -> double;
+  static double rotate(double value);
 
   /**
    * @brief Switch values in vector position [i] from current solution to
@@ -97,12 +94,6 @@ class CSA : public NumericalOptimizer {
    */
   void partial_exec();
 
-  CSA() = delete;
-  CSA operator=(CSA) = delete;
-  CSA &operator=(CSA &&) = delete;
-  CSA(const CSA &) = delete;
-  CSA(CSA &&) = delete;
-
  public:
   /**
    * @brief Constructor for the CSA class.
@@ -115,7 +106,7 @@ class CSA : public NumericalOptimizer {
   /**
    * @brief Destructor for the CSA class.
    */
-  ~CSA();
+  ~CSA() override;
 
   /**
    * @brief Get the number of points (optimizers) used in the CSA algorithm.
@@ -155,6 +146,54 @@ class CSA : public NumericalOptimizer {
    *    - level 0: Remove the best solution (plus the previous ones).
    */
   void reset(int level) override;
-};
 
-#endif
+  /**
+   * @brief Default constructor.
+   *
+   * This constructor is explicitly deleted, meaning objects of this class
+   * cannot be created using the default constructor.
+   */
+  CSA() = delete;
+
+  /**
+   * @brief Copy assignment operator.
+   *
+   * This copy assignment operator is explicitly deleted, indicating that
+   * instances of this class cannot be assigned using the copy assignment syntax.
+   *
+   * @param other The object to be copied.
+   * @return Deleted - no copy assignment allowed.
+   */
+  CSA operator=(CSA) = delete;
+
+  /**
+   * @brief Move assignment operator.
+   *
+   * This move assignment operator is explicitly deleted, indicating that
+   * instances of this class cannot be assigned using the move assignment syntax.
+   *
+   * @param other The object to be moved.
+   * @return Deleted - no move assignment allowed.
+   */
+  CSA &operator=(CSA &&) = delete;
+
+  /**
+   * @brief Copy constructor.
+   *
+   * This copy constructor is explicitly deleted, meaning instances of this
+   * class cannot be created using the copy constructor.
+   *
+   * @param other The object to be copied.
+   */
+  CSA(const CSA &) = delete;
+
+  /**
+   * @brief Move constructor.
+   *
+   * This move constructor is explicitly deleted, meaning instances of this
+   * class cannot be created using the move constructor.
+   *
+   * @param other The object to be moved.
+   */
+  CSA(CSA &&) = delete;
+};

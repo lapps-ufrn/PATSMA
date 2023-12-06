@@ -15,26 +15,32 @@
 //   }
 // }
 
-Autotuning::Autotuning(int dim, double _min, double _max, int _ignore,
-                       int num_opt, int max_iter)
-    : Autotuning(_min, _max, _ignore, new CSA(num_opt, dim, max_iter)) {}
+Autotuning::Autotuning(int dim, double min, double max, int ignore, int num_opt, int max_iter)
+    : Autotuning(min, max, ignore, new CSA(num_opt, dim, max_iter)) {}
 
-Autotuning::Autotuning(double _min, double _max, int _ignore,
-                       NumericalOptimizer *optimizer)
-    : m_min(_min), m_max(_max), m_iter(0), m_runtime(0) {
-  if (_ignore < 0) {
+Autotuning::Autotuning(double min, double max, int ignore, NumericalOptimizer *optimizer)
+    : m_min(min),
+      m_max(max),
+      m_iter(0),
+      m_ignore(ignore + 1),
+      m_cost(0),
+      m_t0(0),
+      m_t1(0),
+      m_runtime(0),
+      p_optimizer(optimizer) {
+
+  if (ignore < 0) {
     throw std::invalid_argument("Ignore Value Invalid! Set _ignore >= 0.");
   }
-
-  m_ignore = _ignore + 1;
-  p_optimizer = optimizer;
 
 #ifdef VERBOSE
   print();
 #endif
 }
 
-Autotuning::~Autotuning() { delete p_optimizer; }
+Autotuning::~Autotuning() {
+  delete p_optimizer;
+}
 
 void Autotuning::reset(int level) {
 #ifdef _OPENMP
@@ -58,12 +64,10 @@ void Autotuning::end() {
   }
 }
 
-void Autotuning::print() {
-  std::cout << "------------------- Autotuning Parameters -------------------"
-            << std::endl;
+void Autotuning::print() const {
+  std::cout << "------------------- Autotuning Parameters -------------------" << std::endl;
   std::cout << "\tNIgn: " << m_ignore;
   std::cout << "Min: " << m_min << "\tMax: " << m_max << std::endl;
   p_optimizer->print();
-  std::cout << "-------------------------------------------------------------"
-            << std::endl;
+  std::cout << "-------------------------------------------------------------" << std::endl;
 }

@@ -3,14 +3,12 @@
  * @brief Declaration of the NelderMead class for numerical optimization using
  * the Nelder-Mead algorithm.
  */
+#pragma once
 
-#ifndef _NELDER_MEAD_
-#define _NELDER_MEAD_
-
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <time.h>
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
+#include <ctime>
 
 #include "NumericalOptimizer.hpp"
 
@@ -77,37 +75,12 @@ class NelderMead : public NumericalOptimizer {
   double m_error;  ///< Error threshold for terminating the algorithm
 
   // Private member functions
-  void set_points();          ///< Set initial points for the algorithm
-  void sort_points();         ///< Sort solutions based on their costs
-  void calculate_centroid();  ///< Calculate the centroid of the solutions
-  double volume();            ///< Calculate the volume of the solutions
-  void swap(double *&p1, double *&p2);  ///< Swap two pointers
-  void swap(double &p1, double &p2);    ///< Swap two values
-
-  /**
-   * @brief Default constructor (deleted).
-   */
-  NelderMead() = delete;
-
-  /**
-   * @brief Copy constructor (deleted).
-   */
-  NelderMead(const NelderMead &) = delete;
-
-  /**
-   * @brief Move constructor (deleted).
-   */
-  NelderMead(NelderMead &&) = delete;
-
-  /**
-   * @brief Copy assignment operator (deleted).
-   */
-  NelderMead operator=(NelderMead) = delete;
-
-  /**
-   * @brief Move assignment operator (deleted).
-   */
-  NelderMead &operator=(NelderMead &&) = delete;
+  void set_points();                           ///< Set initial points for the algorithm
+  void sort_points();                          ///< Sort solutions based on their costs
+  void calculate_centroid();                   ///< Calculate the centroid of the solutions
+  double volume();                             ///< Calculate the volume of the solutions
+  static void swap(double *&p1, double *&p2);  ///< Swap two pointers
+  static void swap(double &p1, double &p2);    ///< Swap two values
 
  public:
   /**
@@ -143,15 +116,38 @@ class NelderMead : public NumericalOptimizer {
 
   /**
    * @brief Constructor for the NelderMead class.
-   * @param _dim Dimensionality of the problem.
-   * @param _error Error threshold for terminating the algorithm.
+   * @param dim Dimensionality of the problem.
+   * @param error Error threshold for terminating the algorithm.
    */
-  NelderMead(int _dim, double _error);
+  NelderMead(int dim, double error);
 
   /**
    * @brief Destructor for the NelderMead class.
    */
-  ~NelderMead();
-};
+  ~NelderMead() override;
 
-#endif
+  /**
+   * @brief Default constructor (deleted).
+   */
+  NelderMead() = delete;
+
+  /**
+   * @brief Copy constructor (deleted).
+   */
+  NelderMead(const NelderMead &) = delete;
+
+  /**
+   * @brief Move constructor (deleted).
+   */
+  NelderMead(NelderMead &&) = delete;
+
+  /**
+   * @brief Copy assignment operator (deleted).
+   */
+  NelderMead operator=(NelderMead) = delete;
+
+  /**
+   * @brief Move assignment operator (deleted).
+   */
+  NelderMead &operator=(NelderMead &&) = delete;
+};

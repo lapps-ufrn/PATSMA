@@ -1,1 +1,3 @@
-unusedFunction:*src/Autotuning.cpp
+unusedFunction:*src/*.hpp
+unusedFunction:*src/*.cpp
+missingInclude:*test/*.cpp

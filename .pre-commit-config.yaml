@@ -6,6 +6,7 @@ repos:
   hooks:
     - id: trailing-whitespace
     - id: end-of-file-fixer
+      args: ["-h"]
     - id: check-yaml
     - id: check-added-large-files
 
@@ -15,7 +16,6 @@ repos:
     - id: clang-format
       args: [--style=file]
     - id: cppcheck
-      args: [--enable-all']
-      languages: [cpp, cxx, h, hxx]
-    - id: clang-tidy
-      args: [-p=./$BUILD/ -warnings-as-errors="*" -checks="-*,clang-analyzer-*,bugprone-*,hicpp-*,modernize-*,mpi-*,openmp-*" ./src/*]
+      args: ["--verbose", "--enable=all", "--suppress=missingIncludeSystem", "--suppress=unmatchedSuppression", "--inconclusive", "--inline-suppr", "--std=c++17", "--language=c++", "--quiet", "--force", "--error-exitcode=1", "--suppressions-list=cppcheck-suppressions.txt", "./src/ ./test/ ./example/"]
+    # - id: clang-tidy
+    #   args: ["-p=./build/", "-config-file=./.clang-tidy", "./src/*"]

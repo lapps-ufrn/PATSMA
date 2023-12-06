@@ -3,16 +3,14 @@
 #include <cmath>  // round
 
 template <typename Point>
-void Autotuning::rescale(Point *out, double *in) const {
+void Autotuning::rescale(Point *out, const double *in) const {
   if constexpr (std::is_floating_point<Point>::value) {
     for (int i = 0; i < p_optimizer->getDimension(); i++) {
-      out[i] = static_cast<Point>(
-          round(((in[i] + 1.0) / 2.0) * (m_max - m_min) + m_min));
+      out[i] = static_cast<Point>(round(((in[i] + 1.0) / 2.0) * (m_max - m_min) + m_min));
     }
   } else if (std::is_integral<Point>::value) {
     for (int i = 0; i < p_optimizer->getDimension(); i++) {
-      out[i] =
-          static_cast<Point>(((in[i] + 1.0) / 2.0) * (m_max - m_min) + m_min);
+      out[i] = static_cast<Point>(((in[i] + 1.0) / 2.0) * (m_max - m_min) + m_min);
     }
   }
 }

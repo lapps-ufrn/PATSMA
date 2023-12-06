@@ -1,13 +1,14 @@
 #include "CSA.hpp"
 
+#include <cfloat>    // DBL_MAX, DBL_MIN
 #include <cstring>   // memset, memcpy
 #include <iostream>  // cout, endl
 
-#ifndef DBL_MAX
-#include <limits>  // numeric_limits
-#define DBL_MAX std::numeric_limits<double>::max()
-#define DBL_MIN std::numeric_limits<double>::min()
-#endif
+// #ifndef DBL_MAX
+// #include <limits>  // numeric_limits
+// #define DBL_MAX std::numeric_limits<double>::max()
+// #define DBL_MIN std::numeric_limits<double>::min()
+// #endif
 
 /// @brief Copy solution vector
 /// @param out the output solution vector
@@ -19,7 +20,7 @@ inline void CSA::copy_solution(double *out, double *in) const {
 /// @brief Make round shift for values < -1 and > 1
 /// @param value Point
 /// @return Point between -1 and 1
-auto CSA::rotate(double value) -> double {
+double CSA::rotate(double value) {
   int i = (int)value;
   if (value > 1.0) {
     return (-1 + (value - i));
@@ -81,12 +82,13 @@ void CSA::reset(int level) {
     case 2:  // Reset only number of iteretions
       m_iter = 0;
       m_iOpt = 0;
-      if (m_step == END) m_step = 1;
+      if (m_step == END) {
+        m_step = 1;
+      }
       break;
 
     default:
-      throw std::runtime_error("There is not the CSA reset option level " +
-                               std::to_string(level));
+      throw std::runtime_error("There is not the CSA reset option level " + std::to_string(level));
       break;
   }
 }
@@ -95,7 +97,7 @@ void CSA::reset(int level) {
 /// @param _num_opt Amount of optimizer
 /// @param _dim Cost Function Dimension
 /// @param _max_iter Maximun iteration
-CSA::CSA(int _num_opt, int _dim, int _max_iter) {
+CSA::CSA(int _num_opt, int _dim, int _max_iter) : m_maxCost(0.0), m_bestCost(0.0) {
   if (_dim < 1) {
     throw std::invalid_argument("Dimensional Value Invalid! Set _dim > 0.");
   }
@@ -103,8 +105,7 @@ CSA::CSA(int _num_opt, int _dim, int _max_iter) {
     throw std::invalid_argument("Optmizers Number Invalid! Set _num_opt > 0.");
   }
   if (_max_iter < 1) {
-    throw std::invalid_argument(
-        "Max number of intereration Invalid! Set _max_iter > 0.");
+    throw std::invalid_argument("Max number of intereration Invalid! Set _max_iter > 0.");
   }
 
   int i, j;
@@ -114,6 +115,7 @@ CSA::CSA(int _num_opt, int _dim, int _max_iter) {
   this->m_step = 0;
   this->m_nOpt = _num_opt;
   this->m_dim = _dim;
+
   try {
     this->m_maxIter = (int)(_max_iter / (double)_num_opt);
   } catch (std::runtime_error &e) {
@@ -123,9 +125,8 @@ CSA::CSA(int _num_opt, int _dim, int _max_iter) {
   this->m_tGen = TG;
   this->m_tAcc = TA;
   this->m_gamma = 0.0;
-  this->m_bestCost = DBL_MAX;
-
   this->m_maxCost = DBL_MIN;
+  this->m_bestCost = DBL_MAX;
   this->m_tmp = 0;
   this->m_probVar = 0;
 
@@ -192,8 +193,7 @@ void CSA::partial_exec() {
           for (j = 0; j < m_dim; j++) {
             drand48_r(&m_opts[i].buffer, &m_opts[i].result);
             m_opts[i].result = tan(M_PI * (m_opts[i].result - 0.5));
-            m_opts[i].probSol[j] =
-                rotate(m_opts[i].curSol[j] + m_tGen * m_opts[i].result);
+            m_opts[i].probSol[j] = rotate(m_opts[i].curSol[j] + m_tGen * m_opts[i].result);
           }
         }
         m_step = 2;
@@ -214,8 +214,7 @@ void CSA::partial_exec() {
           // Step 5.2: Else test probability of accept
           else {
             drand48_r(&m_opts[i].buffer, &m_opts[i].result);
-            m_opts[i].prob =
-                exp((m_opts[i].curCost - m_maxCost) / m_tAcc) / m_gamma;
+            m_opts[i].prob = exp((m_opts[i].curCost - m_maxCost) / m_tAcc) / m_gamma;
 
             if (m_opts[i].prob > m_opts[i].result) {
               swap_opt_info(i);
@@ -239,8 +238,7 @@ void CSA::partial_exec() {
           }
           // Step 7.2: Update accept temperature
           m_tmp = m_tmp / (m_gamma * m_gamma);
-          m_probVar =
-              (m_tmp * ((double)(m_nOpt)) - 1.0) / ((double)m_nOpt - 1.0);
+          m_probVar = (m_tmp * ((double)(m_nOpt)) - 1.0) / ((double)m_nOpt - 1.0);
           if (m_probVar >= 0.99) {
             m_tAcc += 0.05 * m_tAcc;
           } else {
@@ -293,8 +291,8 @@ CSA::~CSA() {
 
 void CSA::print() const {
   std::cout << "----------- CSA Parameters -----------" << std::endl;
-  std::cout << "Dim: " << m_dim << "\tNOpt: " << m_nOpt
-            << "\tNEval: " << (m_maxIter * m_nOpt) << std::endl;
+  std::cout << "Dim: " << m_dim << "\tNOpt: " << m_nOpt << "\tNEval: " << (m_maxIter * m_nOpt)
+            << std::endl;
   std::cout << "{";
   for (int i = 0; i < m_nOpt; i++) {
     std::cout << "[" << i << ", ";

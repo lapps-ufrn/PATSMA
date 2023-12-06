@@ -29,7 +29,7 @@ class Autotuning {
    * @param in Input double point
    */
   template <typename Point>
-  void rescale(Point *out, double *in) const;
+  void rescale(Point *out, const double *in) const;
 
   /**
    * @brief Check if the optimization has ended
@@ -45,7 +45,7 @@ class Autotuning {
    * @param _cost Cost value for the current iteration
    */
   template <typename Point>
-  void exec(Point *point, double _cost);
+  void exec(Point *point, double cost);
   /**
    * @brief Start a new iteration of the autotuning algorithm
    * @tparam Point Type of optimization point
@@ -62,7 +62,7 @@ class Autotuning {
   /**
    * @brief Print basic information about the autotuning parameters
    */
-  void print();
+  void print() const;
 
   /**
    * @brief Reset the autotuning and numerical optimizer
@@ -170,8 +170,7 @@ class Autotuning {
    * @param num_opt Number of optimizers
    * @param max_iter Maximum number of iterations
    */
-  Autotuning(int dim, double _min, double _max, int _ignore, int num_opt,
-             int max_iter);
+  Autotuning(int dim, double min, double max, int ignore, int num_opt, int max_iter);
 
   /**
    * @brief Parameterized constructor with a custom optimizer
@@ -180,8 +179,7 @@ class Autotuning {
    * @param _ignore Number of iterations to ignore
    * @param _optimizer Numerical optimizer instance
    */
-  Autotuning(double _min, double _max, int _ignore,
-             NumericalOptimizer *p_optimizer);
+  Autotuning(double min, double max, int ignore, NumericalOptimizer *optimizer);
 
   /**
    * @brief Destructor
