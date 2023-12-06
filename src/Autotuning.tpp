@@ -2,25 +2,27 @@
 
 #include <cmath>  // round
 
-template <typename POINT>
-void Autotuning::rescale(POINT *out, double *in) const {
-  if (std::is_floating_point<POINT>::value) {
+template <typename Point>
+void Autotuning::rescale(Point *out, double *in) const {
+  if constexpr (std::is_floating_point<Point>::value) {
     for (int i = 0; i < p_optimizer->getDimension(); i++) {
-      out[i] = static_cast<POINT>(
+      out[i] = static_cast<Point>(
           round(((in[i] + 1.0) / 2.0) * (m_max - m_min) + m_min));
     }
-  } else if (std::is_integral<POINT>::value) {
+  } else if (std::is_integral<Point>::value) {
     for (int i = 0; i < p_optimizer->getDimension(); i++) {
       out[i] =
-          static_cast<POINT>(((in[i] + 1.0) / 2.0) * (m_max - m_min) + m_min);
+          static_cast<Point>(((in[i] + 1.0) / 2.0) * (m_max - m_min) + m_min);
     }
   }
 }
 
-template <typename POINT, typename COST>
-void Autotuning::run(POINT *point, COST _cost) {
+template <typename Point>
+void Autotuning::exec(Point *point, double cost) {
+  static_assert(std::is_arithmetic<Point>::value,
+                "Autotuning only supports integer and floating-point types");
   // End execution
-  if (!p_optimizer->isEnd()) {
+  if (!isEnd()) {
 #ifdef _OPENMP
 #pragma omp barrier
 #pragma omp single
@@ -28,17 +30,20 @@ void Autotuning::run(POINT *point, COST _cost) {
     {
       // Itaration ignore test
       if (((++m_iter) % m_ignore) == 0) {
-        double *d_point = p_optimizer->run(_cost);
-        rescale<POINT>(point, d_point);
+        double *d_point = p_optimizer->run(cost);
+        rescale(point, d_point);
       }
     }
   }
 }
 
-template <typename POINT = int>
-void Autotuning::start(POINT *point) {
+template <typename Point>
+void Autotuning::start(Point *point) {
+  static_assert(std::is_arithmetic<Point>::value,
+                "Autotuning only supports integer and floating-point types");
+
   // End execution
-  if (!p_optimizer->isEnd()) {
+  if (!isEnd()) {
 #ifdef _OPENMP
 #pragma omp barrier
 #pragma omp single
@@ -47,7 +52,7 @@ void Autotuning::start(POINT *point) {
       // Itaration ignore test
       if (((++m_iter) % m_ignore) == 0) {
         double *d_point = p_optimizer->run(m_runtime);
-        rescale<POINT>(point, d_point);
+        rescale(point, d_point);
       }
 
       m_t0 = omp_get_wtime();
@@ -55,40 +60,40 @@ void Autotuning::start(POINT *point) {
   }
 }
 
-template <typename POINT = int, typename Func, typename... Args>
-POINT *Autotuning::execOfflineRuntime(Func function, Args... args) {
-  int *point = new int[p_optimizer->getDimension()];
+template <typename Point, typename Func, typename... Args>
+void Autotuning::entireExecRuntime(Func function, Point *point, Args... args) {
+  static_assert(std::is_arithmetic<Point>::value,
+                "Autotuning only supports integer and floating-point types");
   while (!isEnd()) {
     start(point);
-    function(point, args...);
+    function(args..., point);
     end();
   }
-  return point;
 }
 
-template <typename POINT = int, typename COST = double, typename Func,
-          typename... Args>
-POINT *Autotuning::execOffline(Func function, Args... args) {
-  COST cost;
-  POINT *point = new POINT[p_optimizer->getDimension()];
+template <typename Point, typename Func, typename... Args>
+void Autotuning::entireExec(Func function, Point *point, Args... args) {
+  static_assert(std::is_arithmetic<Point>::value,
+                "Autotuning only supports integer and floating-point types");
   while (!isEnd()) {
-    run(point, cost);
-    cost = function(point, args...);
+    exec(point, m_cost);
+    m_cost = function(args..., point);
   }
-  return point;
 }
 
-template <typename POINT = int, typename Func, typename... Args>
-void Autotuning::execOnlineRuntime(Func function, POINT *point, Args... args) {
+template <typename Point, typename Func, typename... Args>
+void Autotuning::singleExecRuntime(Func function, Point *point, Args... args) {
+  static_assert(std::is_arithmetic<Point>::value,
+                "Autotuning only supports integer and floating-point types");
   start(point);
-  function(point, args...);
+  function(args..., point);
   end();
 }
 
-template <typename POINT = int, typename COST = double, typename Func,
-          typename... Args>
-void Autotuning::execOnline(Func function, POINT *point, Args... args) {
-  COST cost;
-  run(point, cost);
-  cost = function(point, args...);
+template <typename Point, typename Func, typename... Args>
+void Autotuning::singleExec(Func function, Point *point, Args... args) {
+  static_assert(std::is_arithmetic<Point>::value,
+                "Autotuning only supports integer and floating-point types");
+  exec(point, m_cost);
+  m_cost = function(args..., point);
 }

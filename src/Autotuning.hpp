@@ -15,6 +15,7 @@ class Autotuning {
   double m_max;  ///< Maximum value of the search interval
   int m_iter;    ///< Iteration number
   int m_ignore;  ///< Number of iterations to ignore
+  double m_cost;
 
   double m_t0, m_t1;  ///< Time starting and ending
   double m_runtime;   ///< Total time of a task
@@ -23,11 +24,12 @@ class Autotuning {
 
   /**
    * @brief Rescale point from Type [-1,1] to Floating [min,max]
+   * @tparam Point Type of optimization point
    * @param out Output int point
    * @param in Input double point
    */
-  template <typename POINT>
-  void rescale(POINT *out, double *in) const;
+  template <typename Point>
+  void rescale(Point *out, double *in) const;
 
   /**
    * @brief Check if the optimization has ended
@@ -35,27 +37,28 @@ class Autotuning {
    */
   bool isEnd() const { return p_optimizer->isEnd(); }
 
+ public:
   /**
    * @brief Run the autotuning algorithm
+   * @tparam Point Type of optimization point
    * @param point Input/output array of tuning parameters
    * @param _cost Cost value for the current iteration
    */
-  template <typename POINT = int, typename COST = double>
-  void run(POINT *point, COST _cost);
-
+  template <typename Point>
+  void exec(Point *point, double _cost);
   /**
    * @brief Start a new iteration of the autotuning algorithm
+   * @tparam Point Type of optimization point
    * @param point Input/output array of tuning parameters
    */
-  template <typename POINT>
-  void start(POINT *point);
+  template <typename Point>
+  void start(Point *point);
 
   /**
    * @brief End the current iteration of the autotuning algorithm
    */
   void end();
 
- public:
   /**
    * @brief Print basic information about the autotuning parameters
    */
@@ -71,50 +74,61 @@ class Autotuning {
   void reset(int level);
 
   /**
-   * @brief Execute the autotuning algorithm offline with runtime measurement
+   * @brief Execute the entire autotuning, recommended to be done off the
+   * application loop. It uses "funciton" runtime as cost.
+   * @tparam Point Type of optimization point
    * @tparam Func Type of the cost function
    * @tparam Args Types of additional arguments to the cost function
-   * @param function Cost function to be optimized
-   * @param args Additional arguments to the cost function
-   * @return Output array of optimized tuning parameters
+   * @param function Function to be optimized
+   * @param point Input/output array of tuning parameters
+   * @param args Additional arguments to the function, the first argument needs
+   * to be the optimization point
+   * @return Optimized point
    */
-  template <typename POINT = int, typename Func, typename... Args>
-  POINT *execOfflineRuntime(Func function, Args... args);
+  template <typename Point = int, typename Func, typename... Args>
+  void entireExecRuntime(Func function, Point *point, Args... args);
 
   /**
-   * @brief Execute the autotuning algorithm offline
+   * @brief Execute the entire autotuning, recommended to be done off the
+   * application loop. It uses funciton return as cost.
+   * @tparam Point Type of optimization point
    * @tparam Func Type of the cost function
    * @tparam Args Types of additional arguments to the cost function
-   * @param function Cost function to be optimized
+   * @param function Cost function to be optimized. It needs to return the cost
+   * and the first argument needs to be the optimization point
+   * @param point Input/output array of tuning parameters
    * @param args Additional arguments to the cost function
-   * @return Output array of optimized tuning parameters
+   * @return Optimized point
    */
-  template <typename POINT = int, typename COST = double, typename Func,
-            typename... Args>
-  POINT *execOffline(Func function, Args... args);
+  template <typename Point = int, typename Func, typename... Args>
+  void entireExec(Func function, Point *point, Args... args);
 
   /**
-   * @brief Execute the autotuning algorithm online with runtime measurement
+   * @brief Execute one iteration of the autotuning, appropriate to be done on
+   * the application loop. It uses "funciton" runtime as cost.
+   * @tparam Func Type of the function
+   * @tparam Args Types of additional arguments to the function
+   * @param function Function to be optimized. The first argument needs
+   * to be the optimization point
+   * @param point Input/output array of tuning parameters
+   * @param args Additional arguments to the function
+   */
+  template <typename Point = int, typename Func, typename... Args>
+  void singleExecRuntime(Func function, Point *point, Args... args);
+
+  /**
+   * @brief Execute one iteration of the autotuning, appropriate to be done on
+   * the application loop. It uses funciton return as cost.
+   * @tparam Point Type of optimization point
    * @tparam Func Type of the cost function
    * @tparam Args Types of additional arguments to the cost function
-   * @param function Cost function to be optimized
+   * @param function Cost function to be optimized. It needs to return the cost
+   * and the first argument needs to be the optimization point
    * @param point Input/output array of tuning parameters
    * @param args Additional arguments to the cost function
    */
-  template <typename POINT = int, typename Func, typename... Args>
-  void execOnlineRuntime(Func function, POINT *point, Args... args);
-
-  /**
-   * @brief Execute the autotuning algorithm online
-   * @tparam Func Type of the cost function
-   * @tparam Args Types of additional arguments to the cost function
-   * @param function Cost function to be optimized
-   * @param point Input/output array of tuning parameters
-   * @param args Additional arguments to the cost function
-   */
-  template <typename POINT = int, typename COST = double, typename Func,
-            typename... Args>
-  void execOnline(Func function, POINT *point, Args... args);
+  template <typename Point = int, typename Func, typename... Args>
+  void singleExec(Func function, Point *point, Args... args);
 
   /**
    * @brief Deleted copy assignment operator

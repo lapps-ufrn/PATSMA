@@ -5,9 +5,11 @@
 #include <iostream>  // cout, endl
 
 //
-// inline void Autotuning::rescale(double *out, POINT *in) const {
+// inline  void
+// Autotuning::rescale(double *out, Point *in) const {
 //   for (int i = 0; i < p_optimizer->getDimension(); i++) {
-//     out[i] = (((double)in[i] + 1.0) / 2.0) * ((double)m_max - (double)m_min)
+//     out[i] = (((double)in[i] + 1.0) / 2.0) * ((double)m_max -
+//     (double)m_min)
 //     +
 //              (double)m_min;
 //   }

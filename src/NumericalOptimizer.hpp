@@ -9,7 +9,7 @@ class NumericalOptimizer {
   virtual int getNumPoints() const = 0;
   virtual int getDimension() const = 0;
   virtual bool isEnd() const = 0;
-  virtual void reset(int level) = 0;
+  virtual void reset(int level){};
   virtual void print() const {}
 };
 

@@ -30,7 +30,7 @@ class Test {
     Points.push_back({p[0]});
   }
 
-  static double function(int *p, int dim) {
+  static double function(int dim, int *p) {
     std::vector<int> _p;
     double cost = equation(p, dim);
     for (int i = 0; i < dim; i++) _p.push_back(p[i]);
@@ -41,7 +41,7 @@ class Test {
 
   static std::vector<int> get_min_point() {
     double element = *std::min_element(Costs.begin(), Costs.end());
-    for (int i = 0; i < Points.size(); i++) {
+    for (int i = 0; i < (int)Points.size(); i++) {
       if (element == Costs[i]) return Points[i];
     }
     throw std::runtime_error("Element not found\n");
@@ -93,23 +93,24 @@ TEST_CASE("CSA") {
   SECTION("Reset Cases") {
     Test::reset();
     std::vector<int> reset_levels = {2, 1, 0};
-    int point;
+    int *point = new int[dim];
 
     Autotuning *at = new Autotuning(dim, min, max, ignore, n_opt, n_iter);
 
-    point = at->execOffline(Test::function, dim)[0];
-    REQUIRE_MESSAGE(point == Test::get_min_point()[0], "Base Case");
+    at->singleExec(Test::function, point, dim);
+    REQUIRE_MESSAGE(point[0] == Test::get_min_point()[0], "Base Case");
 
     for (auto &&level : reset_levels) {
       at->reset(level);
       if (level == 0) Test::reset();
 
-      point = at->execOffline(Test::function, dim)[0];
-      REQUIRE_MESSAGE(point == Test::get_min_point()[0],
+      at->singleExec(Test::function, point, dim);
+      REQUIRE_MESSAGE(point[0] == Test::get_min_point()[0],
                       "Reset level " + std::to_string(level));
     }
 
     delete at;
+    delete point;
   }
 
   SECTION("MultiDimensional") {
@@ -125,7 +126,7 @@ TEST_CASE("CSA") {
           Autotuning *at = new Autotuning(dim, min, max, ignore, n_opt, n_iter);
           int *point = new int[dim];
 
-          point = at->execOffline(Test::function, dim);
+          at->singleExec(Test::function, point, dim);
 
           std::vector<int> min_point = Test::get_min_point();
           for (int j = 0; j < dim; j++) {
@@ -164,14 +165,14 @@ TEST_CASE("Nelder-Mead") {
 
     Autotuning *at = new Autotuning(min, max, ignore, new NelderMead(dim, e));
 
-    point = at->execOffline(Test::function, dim);
+    at->singleExec(Test::function, point, dim);
     REQUIRE_MESSAGE(point[0] == Test::get_min_point()[0], "Base Case");
 
     for (auto &&level : reset_levels) {
       at->reset(level);
       if (level == 0) Test::reset();
 
-      point = at->execOffline(Test::function, dim);
+      at->singleExec(Test::function, point, dim);
       REQUIRE_MESSAGE(point[0] == Test::get_min_point()[0],
                       "Reset level " + std::to_string(level));
     }
@@ -192,7 +193,7 @@ TEST_CASE("Nelder-Mead") {
               new Autotuning(min, max, ignore, new NelderMead(dim, e));
           int *point = new int[dim];
 
-          point = at->execOffline(Test::function, dim);
+          at->singleExec(Test::function, point, dim);
 
           std::vector<int> min_point = Test::get_min_point();
           for (int j = 0; j < dim; j++) {

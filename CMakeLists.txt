@@ -49,18 +49,18 @@ separate_arguments(MPI_CXX_COMPILE_FLAGS)
 # Enable code testing
 if(TEST)
   message (STATUS "Setting build with TESTING.")
-  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DTEST")
+  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DTEST -Wall")
 endif()
 
 # Enable verbosing
 if (VERBOSE)
   message (STATUS "Setting build with VERBOSE.")
-  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DVERBOSE")
+  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DVERBOSE -Wall")
 endif ()
 
 if (DEBUG)
   message (STATUS "Setting build type to 'Debug'.")
-  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -DDEBUG")
+  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -DDEBUG -Wall")
 endif ()
 
 # # Find source files
