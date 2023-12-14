@@ -11,7 +11,6 @@
 
 #define N 8001
 #define THREAD_COUNT 6
-#define PHI 1.61803398875
 
 double **A, **B, diff;
 
@@ -53,9 +52,6 @@ long usecs(void)
 
 double matrix_calculation(double **A, int n, int *chunk)
 {
-
-  int iters = 0;
-  int convergence = FALSE;
   double tmp;
   double diff;
   int i, j;
@@ -69,7 +65,6 @@ double matrix_calculation(double **A, int n, int *chunk)
       {
         if ((i + j) % 2 == 1)
         {
-          // printf("Thread: %d on (%d, %d)\n", omp_get_thread_num(), i, j);
           tmp = A[i][j];
           A[i][j] = 0.2 * (A[i][j] + A[i][j - 1] + A[i - 1][j] + A[i][j + 1] + A[i + 1][j]);
           diff += fabs(A[i][j] - tmp);
@@ -77,10 +72,10 @@ double matrix_calculation(double **A, int n, int *chunk)
       }
     }
 #pragma omp barrier
-  }
+  // }
 
-#pragma omp parallel num_threads(THREAD_COUNT) shared(chunk) private(tmp, i, j) reduction(+ : diff)
-  {
+// #pragma omp parallel num_threads(THREAD_COUNT) shared(chunk) private(tmp, i, j) reduction(+ : diff)
+  // {
 #pragma omp for collapse(2) schedule(dynamic, *chunk)
     for (i = 1; i <= n; ++i)
     {
@@ -88,7 +83,6 @@ double matrix_calculation(double **A, int n, int *chunk)
       {
         if ((i + j) % 2 == 0)
         {
-          // printf("Thread: %d on (%d, %d)\n", omp_get_thread_num(), i, j);
           tmp = A[i][j];
           A[i][j] = 0.2 * (A[i][j] + A[i][j - 1] + A[i - 1][j] + A[i][j + 1] + A[i + 1][j]);
           diff += fabs(A[i][j] - tmp);
@@ -113,17 +107,9 @@ void solve_parallel(double **A, int n)
   /*PATSMA INSTANCE*/
   Autotuning *at = new Autotuning(min,max,ignore,dim,n_opt,n_iter);
 
-  /*Formula chunkExpert*/
-  int number_iter = N;
-  int number_threads = omp_get_num_threads();
-  double f = std::floor(std::log2(static_cast<double>(number_iter) / number_threads)) * (1.0 / PHI);
-  int chunk_size = static_cast<int>(std::floor(number_iter / (std::pow(2.0, f) * 2 * number_threads)));
 
   int *chunk = new int[dim];
-  *chunk = chunk_size;
-  // chunk = at->execOffline(chunk,matrix_calculation, A, N - 1);
   at->entireExecRuntime(matrix_calculation, chunk, A, N - 1);
-  // at->singleExecRuntime(matrix_calculation,chunk, A, N - 1);
 
   printf("\n\n-----------------------Parallel Red Black Solver-----------------------\n\n\n");
   int for_iters;
@@ -156,11 +142,9 @@ int main(int argc, char *argv[])
   long t_start, t_end;
   double time;
   A = new double *[N + 2];
-  B = new double *[N + 2];
   for (i = 0; i < N + 2; i++)
   {
     A[i] = new double[N + 2];
-    B[i] = new double[N + 2];
   }
 
   initialize(A, N);
