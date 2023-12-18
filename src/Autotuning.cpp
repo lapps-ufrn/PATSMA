@@ -16,7 +16,7 @@
 // }
 
 Autotuning::Autotuning(double min, double max, int ignore, int dim, int num_opt, int max_iter)
-    : Autotuning(min, max, ignore, new CSA(num_opt, dim, max_iter)) {}
+    : Autotuning(min, max, ignore, new CSA(dim, num_opt, max_iter)) {}
 
 Autotuning::Autotuning(double min, double max, int ignore, NumericalOptimizer *optimizer)
     : m_min(min),
@@ -66,7 +66,7 @@ void Autotuning::end() {
 
 void Autotuning::print() const {
   std::cout << "------------------- Autotuning Parameters -------------------" << std::endl;
-  std::cout << "\tNIgn: " << m_ignore;
+  std::cout << "NIgn: " << m_ignore << "\t";
   std::cout << "Min: " << m_min << "\tMax: " << m_max << std::endl;
   p_optimizer->print();
   std::cout << "-------------------------------------------------------------" << std::endl;

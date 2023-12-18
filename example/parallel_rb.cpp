@@ -4,11 +4,10 @@
 #include <stdlib.h>
 #include <sys/time.h>
 
-#include "Autotuning.hpp"
+#include "../src/Autotuning.hpp"
 
-#define Tolerance 0.000012
-#define TRUE 1
-#define FALSE 0
+#define tolerance 0.000012
+#define max_iterations 100
 
 #define N 8001
 #define THREAD_COUNT 6
@@ -27,7 +26,6 @@ void display(double **V, int n) {
 
 void initialize(double **A, int n) {
   int i, j;
-
   for (j = 0; j < n + 1; j++) {
     A[0][j] = 1.0;
   }
@@ -48,29 +46,17 @@ double matrix_calculation(double **A, int n, int *chunk) {
   double diff;
   int i, j;
 
-#pragma omp parallel for collapse(2) shared(chunk) private(tmp, i, j) reduction(+ : diff) \
-    schedule(dynamic, *chunk)
-  for (i = 1; i <= n; ++i) {
-    for (j = 1; j <= n; ++j) {
-      tmp = A[i][j];
-      if ((i + j) % 2 == 1)
-        A[i][j] = 0.2 * (A[i][j] + A[i][j - 1] + A[i - 1][j] + A[i][j + 1] + A[i + 1][j]);
-      else if ((i + j) % 2 == 0)
-        A[i][j] = 0.2 * (A[i][j] + A[i][j - 1] + A[i - 1][j] + A[i][j + 1] + A[i + 1][j]);
-      diff += fabs(A[i][j] - tmp);
-    }
-  }
-  return diff;
-}
+#ifdef TWO_PARAM
+  int chk_01 = chunk[0];
+  int chk_02 = chunk[1];
+#else  // ONE_PARAM
+  int chk_01 = chunk[0];
+  int chk_02 = chunk[0];
+#endif
 
-double matrix_calculation_two(double **A, int n, int *chunk) {
-  double tmp;
-  double diff;
-  int i, j;
-
-#pragma omp parallel num_threads(THREAD_COUNT) shared(chunk) private(tmp, i, j) reduction(+ : diff)
+#pragma omp parallel num_threads(THREAD_COUNT) private(tmp, i, j)
   {
-#pragma omp for collapse(2) schedule(dynamic, *chunk)
+#pragma omp for reduction(+ : diff) schedule(dynamic, chk_01)
     for (i = 1; i <= n; ++i) {
       for (j = 1; j <= n; ++j) {
         if ((i + j) % 2 == 1) {
@@ -80,8 +66,7 @@ double matrix_calculation_two(double **A, int n, int *chunk) {
         }
       }
     }
-
-#pragma omp for collapse(2) schedule(dynamic, *chunk)
+#pragma omp for reduction(+ : diff) schedule(dynamic, chk_02)
     for (i = 1; i <= n; ++i) {
       for (j = 1; j <= n; ++j) {
         if ((i + j) % 2 == 0) {
@@ -95,85 +80,45 @@ double matrix_calculation_two(double **A, int n, int *chunk) {
   return diff;
 }
 
-void solve(double **B, int n)
-{
-   printf("\n\n-----------------------Serial Solver-----------------------\n\n\n");
-   int convergence=FALSE;
-   double diff, tmp;
-   int i, j, iters=0;
-   int for_iters;
-
-   for(for_iters = 1; for_iters < 21; for_iters++)
-   { 
-     diff = 0.0;
-
-     for (i=1;i<n;i++)
-     {
-       for (j=1;j<n;j++)
-       {
-         tmp = B[i][j];
-         B[i][j] = 0.2*(B[i][j] + B[i][j-1] + B[i-1][j] + B[i][j+1] + B[i+1][j]);
-         diff += fabs(B[i][j] - tmp);
-       }
-     }
-     iters++;
-     printf("Difference after %3d iterations: %f\n", iters, diff);
-     if (diff/((double)N*(double)N) < Tolerance)
-     {
-       printf("\nConvergence achieved after %d iterations....Now exiting\n\n", iters);
-       return;
-     }
-   }
-   printf("\n\nIteration LIMIT Reached...Exiting\n\n");
-}
-
 void solve_parallel(double **A, int n) {
-  /*PATSMA*/
-  /* CSA parameters*/
-#ifdef MATRIX2
-  int dim = 2;
+  /*PATSMA parameters*/
+#ifdef TWO_PARAM
+  const int dim = 2;
 #else
-  int dim = 1;
+  const int dim = 1;
 #endif
-  int min = 1, max = N / (omp_get_num_threads() * 2);
-  int ignore = 0;
-  int n_opt = 4;
-  int n_iter = 20;
+  const int min = 1, max = N / (THREAD_COUNT * 2);
+  const int ignore = 0;
+  const int n_opt = 4;
+  const int n_iter = 20;
 
   /*PATSMA INSTANCE*/
   Autotuning *at = new Autotuning(min, max, ignore, dim, n_opt, n_iter);
 
   int *chunk = new int[dim];
-#ifdef MATRIX2
-  at->entireExecRuntime(matrix_calculation_two, chunk, A, N - 1);
-#else
   at->entireExecRuntime(matrix_calculation, chunk, A, N - 1);
-#endif
   initialize(A, n + 1);
 
   printf("\n\n-----------------------Parallel Red Black Solver-----------------------\n\n\n");
-  int for_iters;
-  int iters = 0;
-  int convergence = FALSE;
+  int iters;
+  int convergence = false;
   double tmp;
   double diff;
   int i, j;
-  for (for_iters = 1; for_iters < 21; ++for_iters) {
+  for (iters = 1; iters < max_iterations; ++iters) {
     diff = 0;
-#ifdef MATRIX2
-    diff = matrix_calculation_two(A, N - 1, chunk);
-#else
     diff = matrix_calculation(A, N - 1, chunk);
-#endif
-    iters++;
-
     printf("Difference after %3d iterations: %f\n", iters, diff);
-    if (diff / ((double)N * (double)N) < Tolerance) {
+    if (diff / ((double)N * (double)N) < tolerance) {
       printf("\nConvergence achieved after %d iterations....Now exiting\n\n", iters);
+      printf("PATSMA Points: %d %d\n", chunk[0], chunk[1]);
+      at->print();
       return;
     }
   }
   printf("\n\nIteration LIMIT Reached...Exiting\n\n");
+  printf("PATSMA Points: %d %d\n", chunk[0], chunk[1]);
+  at->print();
 }
 
 int main(int argc, char *argv[]) {
@@ -188,12 +133,6 @@ int main(int argc, char *argv[]) {
 
   initialize(A, N);
 
-  t_start = usecs();
-  solve(A, N - 1);
-  t_end = usecs();
-
-  initialize(A, N);
-  
   t_start = usecs();
   solve_parallel(A, N - 1);
   t_end = usecs();

@@ -90,7 +90,7 @@ CSA::CSA(int dim, int num_opt, int max_iter) {
   }
 
   int i, j;
-  
+
   this->m_step = 0;
   this->m_iter = 0;
   this->m_maxIter = max_iter;
@@ -108,7 +108,7 @@ CSA::CSA(int dim, int num_opt, int max_iter) {
   try {
     m_bestSol = new double[m_dim];
     m_point = new double[m_dim];
-    m_opts = new Opt[m_nOpt];    
+    m_opts = new Opt[m_nOpt];
     for (i = 0; i < m_nOpt; i++) {
       m_opts[i].curSol = new double[m_dim];
       m_opts[i].probSol = new double[m_dim];
@@ -268,19 +268,23 @@ CSA::~CSA() {
 }
 
 void CSA::print() const {
+  bool best;
   std::cout << "----------- CSA Parameters -----------" << std::endl;
   std::cout << "Dim: " << m_dim << "\tNOpt: " << m_nOpt << "\tNEval: " << (m_maxIter * m_nOpt)
             << std::endl;
-  std::cout << "{";
+  std::cout << "Points";
   for (int i = 0; i < m_nOpt; i++) {
-    std::cout << "[" << i << ", ";
+    best = true;
+    std::cout << "\t" << i << ": ";
     std::cout << "(";
     for (int j = 0; j < m_dim; j++) {
-      std::cout << m_opts[i].probSol[j] << ((j < m_dim - 1) ? "," : "");
+      std::cout << m_opts[i].probSol[j] << ((j < m_dim - 1) ? ", " : "");
+      if (m_opts[i].curSol[j] != m_bestSol[j]) {
+        best = false;
+      }
     }
-    std::cout << ")";
-    std::cout << "]" << ((i < m_nOpt - 1) ? "\t" : "");
+    std::cout << ")" << (best ? "BEST!" : "");
+    std::cout << std::endl;
   }
-  std::cout << "}" << std::endl;
   std::cout << "---------------------------------------" << std::endl;
 }
