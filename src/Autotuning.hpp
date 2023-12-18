@@ -31,13 +31,13 @@ class Autotuning {
   template <typename Point>
   void rescale(Point *out, const double *in) const;
 
+ public:
   /**
    * @brief Check if the optimization has ended
    * @return True if optimization has ended, false otherwise
    */
   bool isEnd() const { return p_optimizer->isEnd(); }
 
- public:
   /**
    * @brief Run the autotuning algorithm
    * @tparam Point Type of optimization point
