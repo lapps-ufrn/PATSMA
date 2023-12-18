@@ -1,3 +1,4 @@
 unusedFunction:*src/*.hpp
 unusedFunction:*src/*.cpp
+unusedFunction:*test/*.hpp
 missingInclude:*test/*.cpp

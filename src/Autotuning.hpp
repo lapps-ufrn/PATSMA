@@ -31,13 +31,12 @@ class Autotuning {
   template <typename Point>
   void rescale(Point *out, const double *in) const;
 
+ public:
   /**
    * @brief Check if the optimization has ended
    * @return True if optimization has ended, false otherwise
    */
   bool isEnd() const { return p_optimizer->isEnd(); }
-
- public:
   /**
    * @brief Run the autotuning algorithm
    * @tparam Point Type of optimization point
@@ -170,7 +169,7 @@ class Autotuning {
    * @param num_opt Number of optimizers
    * @param max_iter Maximum number of iterations
    */
-  Autotuning(int dim, double min, double max, int ignore, int num_opt, int max_iter);
+  Autotuning(double min, double max, int ignore, int dim, int num_opt, int max_iter);
 
   /**
    * @brief Parameterized constructor with a custom optimizer

@@ -1,2 +1,71 @@
+# Compiled Object files
+*.d
+*.slo
+*.lo
+*.o
+*.obj
+
+# Precompiled Headers
+*.gch
+*.pch
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+
+# Fortran module files
+*.mod
+*.smod
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+*.lib
+
+# Executables
+*.exe
+
+# Temporary files and caches
+*.cache
+*.tmp
+*.out
+
+# IDE-specific files
+# (Adjust based on your specific IDE)
 .vscode/
+.idea/
+*.iml
+*.ipr
+*.iws
+*.swp
+
+# Testing files
+*.gtest
+*.gmock
+*.test
+
+# Makefiles and build outputs
+Makefile
+makefile
+#CMakeLists.txt
 build/
+lib/
+bin/
+
+# Documentation
+Doxyfile
+doxygen/
+
+# Generated documentation
+doc/
+
+# Ignore Visual Studio specific files
+# (Only uncomment if using Visual Studio)
+*.suo
+*.sln
+*.user
+*.vsprops
+Debug/
+Release/
