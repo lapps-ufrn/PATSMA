@@ -61,11 +61,11 @@ class CSA : public NumericalOptimizer {
   double m_maxCost;  /**< Maximum cost value. */
   double m_tmp;      /**< Temporary variable. */
   double m_probVar;  /**< Probability variable. */
-  double *m_bestSol; /**< Best Solution vector. */
   double m_bestCost; /**< Best Cost relative to the best solution. */
+  double *m_bestSol; /**< Best Solution vector. */
 
-  struct Opt *m_opts; /**< Array of Optimizers. */
   double *m_point;    /**< Point to return. */
+  struct Opt *m_opts; /**< Array of Optimizers. */  
 
   /**
    * @brief Copy the solution vector.
@@ -97,11 +97,11 @@ class CSA : public NumericalOptimizer {
  public:
   /**
    * @brief Constructor for the CSA class.
-   * @param _num_opt Number of optimizers.
    * @param _dim Dimension of the cost function.
+   * @param _num_opt Number of optimizers.
    * @param _max_iter Maximum number of iterations.
    */
-  CSA(int _num_opt, int _dim, int _max_iter);
+  CSA(int _dim, int _num_opt, int _max_iter);
 
   /**
    * @brief Destructor for the CSA class.

@@ -15,7 +15,7 @@
 //   }
 // }
 
-Autotuning::Autotuning(int dim, double min, double max, int ignore, int num_opt, int max_iter)
+Autotuning::Autotuning(double min, double max, int ignore, int dim, int num_opt, int max_iter)
     : Autotuning(min, max, ignore, new CSA(num_opt, dim, max_iter)) {}
 
 Autotuning::Autotuning(double min, double max, int ignore, NumericalOptimizer *optimizer)

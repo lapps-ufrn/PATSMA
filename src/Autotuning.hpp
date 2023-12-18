@@ -163,14 +163,14 @@ class Autotuning {
 
   /**
    * @brief Parameterized constructor with CSA as the default optimizer
-   * @param dim Cost Function Dimension
    * @param _min Minimum value of the search interval
    * @param _max Maximum value of the search interval
    * @param _ignore Number of iterations to ignore
+   * @param dim Cost Function Dimension
    * @param num_opt Number of optimizers
    * @param max_iter Maximum number of iterations
    */
-  Autotuning(int dim, double min, double max, int ignore, int num_opt, int max_iter);
+  Autotuning(double min, double max, int ignore, int dim, int num_opt, int max_iter);
 
   /**
    * @brief Parameterized constructor with a custom optimizer

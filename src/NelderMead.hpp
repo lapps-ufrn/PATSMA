@@ -42,6 +42,9 @@ class NelderMead : public NumericalOptimizer {
   double m_sigma;  ///< Used in reduction
 
   // Variables for algorithm state
+  bool m_enableIter; ///< Enable iteration finalization
+  int m_iter;      ///< Iteration counter
+  int m_maxIter;   ///< Maximum number of iterations
   int m_step;      ///< Current step in the algorithm
   int m_worstID;   ///< Index of the worst solution
   int m_secondID;  ///< Index of the second worst solution
@@ -118,8 +121,9 @@ class NelderMead : public NumericalOptimizer {
    * @brief Constructor for the NelderMead class.
    * @param dim Dimensionality of the problem.
    * @param error Error threshold for terminating the algorithm.
+   * @param max_iter Maximum number of iterations. Default value is 0, which disable the finalization by number of iteration.
    */
-  NelderMead(int dim, double error);
+  NelderMead(int dim, double error, int max_iter = 0);
 
   /**
    * @brief Destructor for the NelderMead class.

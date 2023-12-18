@@ -82,9 +82,9 @@ TEST_CASE("CSA") {
     REQUIRE_THROWS_AS(at = new Autotuning(min, max, -1, nullptr), std::invalid_argument);
 
     CSA *csa;
-    REQUIRE_THROWS_AS(csa = new CSA(0, dim, n_iter), std::invalid_argument);
-    REQUIRE_THROWS_AS(csa = new CSA(n_opt, 0, n_iter), std::invalid_argument);
-    REQUIRE_THROWS_AS(csa = new CSA(n_opt, dim, 0), std::invalid_argument);
+    REQUIRE_THROWS_AS(csa = new CSA(0, n_opt, n_iter), std::invalid_argument);
+    REQUIRE_THROWS_AS(csa = new CSA(dim, 0, n_iter), std::invalid_argument);
+    REQUIRE_THROWS_AS(csa = new CSA(dim, n_opt, 0), std::invalid_argument);
   }
 
   SECTION("Reset Cases") {
@@ -119,7 +119,7 @@ TEST_CASE("CSA") {
         SECTION("Test with Dim = " + std::to_string(_dim) +
                 " and n_iter = " + std::to_string(_n_iter)) {
           Test::reset();
-          Autotuning *at = new Autotuning(_dim, min, max, ignore, n_opt, _n_iter);
+          Autotuning *at = new Autotuning(min, max, ignore, _dim, n_opt, _n_iter);
           int *point = new int[_dim];
 
           at->singleExec(Test::function, point, _dim);
