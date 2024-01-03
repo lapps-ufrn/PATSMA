@@ -96,8 +96,7 @@ void solve_parallel(double **A, int n) {
   Autotuning *at = new Autotuning(min, max, ignore, dim, n_opt, n_iter);
 
   int *chunk = new int[dim];
-  at->entireExecRuntime(matrix_calculation, chunk, A, N - 1);
-  initialize(A, n + 1);
+  // initialize(A, n + 1);
 
   printf("\n\n-----------------------Parallel Red Black Solver-----------------------\n\n\n");
   int iters;
@@ -107,7 +106,9 @@ void solve_parallel(double **A, int n) {
   int i, j;
   for (iters = 1; iters < max_iterations; ++iters) {
     diff = 0;
+    at->start(chunk);
     diff = matrix_calculation(A, N - 1, chunk);
+    at->end();
     printf("Difference after %3d iterations: %f\n", iters, diff);
     if (diff / ((double)N * (double)N) < tolerance) {
       printf("\nConvergence achieved after %d iterations....Now exiting\n\n", iters);
@@ -119,6 +120,7 @@ void solve_parallel(double **A, int n) {
   printf("\n\nIteration LIMIT Reached...Exiting\n\n");
   printf("PATSMA Points: %d %d\n", chunk[0], chunk[1]);
   at->print();
+  delete at;
 }
 
 int main(int argc, char *argv[]) {
