@@ -12,21 +12,18 @@
 #include "NumericalOptimizer.hpp"
 
 #ifndef M_PI
-#define M_PI 3.14159265358979323846264338327
+#define M_PI 3.14159265358979323846264338327 /**< PI mathematical constant. */
 #endif
 
-#ifndef uint
-#define uint unsigned int
-#endif
-
+// Constants for default temperatures
 #ifndef TG
-#define TG 0.1
+#define TG 0.1 /**< Default generation temperature. */
 #endif
 #ifndef TA
-#define TA 0.9
+#define TA 0.9 /**< Default acceptance temperature. */
 #endif
 
-#define END 0x99
+#define END 0x99 /**< Flag indicating the end of the optimization process. */
 
 /**
  * @class CSA
@@ -164,7 +161,7 @@ class CSA : public NumericalOptimizer {
    * @param other The object to be copied.
    * @return Deleted - no copy assignment allowed.
    */
-  CSA operator=(CSA) = delete;
+  CSA operator=(CSA other) = delete;
 
   /**
    * @brief Move assignment operator.
@@ -175,7 +172,7 @@ class CSA : public NumericalOptimizer {
    * @param other The object to be moved.
    * @return Deleted - no move assignment allowed.
    */
-  CSA &operator=(CSA &&) = delete;
+  CSA &operator=(CSA &&other) = delete;
 
   /**
    * @brief Copy constructor.
@@ -185,7 +182,7 @@ class CSA : public NumericalOptimizer {
    *
    * @param other The object to be copied.
    */
-  CSA(const CSA &) = delete;
+  CSA(const CSA &other) = delete;
 
   /**
    * @brief Move constructor.
@@ -195,5 +192,5 @@ class CSA : public NumericalOptimizer {
    *
    * @param other The object to be moved.
    */
-  CSA(CSA &&) = delete;
+  CSA(CSA &&other) = delete;
 };

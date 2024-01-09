@@ -14,19 +14,19 @@
 
 // Constants for algorithm parameters
 #ifndef A_LFA
-#define A_LFA 1
+#define A_LFA 1 /**< Default alfa value to reflection operation. */
 #endif
 #ifndef G_AMA
-#define G_AMA 2
+#define G_AMA 2 /**< Default gama value to expansion operation. */
 #endif
 #ifndef R_HO
-#define R_HO 0.5
+#define R_HO 0.5 /**< Default rho value to contraction operation. */
 #endif
 #ifndef S_GMA
-#define S_GMA 0.5
+#define S_GMA 0.5 /**< Default sigma value to shrink operation. */
 #endif
 
-#define END 0x99
+#define END 0x99 /**< Flag indicating the end of the optimization process. */
 
 /**
  * @class NelderMead

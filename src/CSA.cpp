@@ -10,16 +10,10 @@
 // #define DBL_MIN std::numeric_limits<double>::min()
 // #endif
 
-/// @brief Copy solution vector
-/// @param out the output solution vector
-/// @param in the input solution vector
 inline void CSA::copy_solution(double *out, double *in) const {
   memcpy(out, in, m_dim * sizeof(double));
 }
 
-/// @brief Make round shift for values < -1 and > 1
-/// @param value Point
-/// @return Point between -1 and 1
 double CSA::rotate(double value) {
   int i = (int)value;
   if (value > 1.0) {
@@ -30,10 +24,6 @@ double CSA::rotate(double value) {
   return value;
 }
 
-/// @brief Switch values in vector position [i] from current solution to
-/// solution, same from current cost to cost and check if this new cost is the
-/// maximum
-/// @param i Switch position
 void CSA::swap_opt_info(int i) {
   double *temp = m_opts[i].probSol;
   m_opts[i].probSol = m_opts[i].curSol;
@@ -48,11 +38,6 @@ void CSA::swap_opt_info(int i) {
   }
 }
 
-/// @brief Reset the CSA
-/// @param level Select the level of reseting
-///    level 2 - Reset the number of iteretions
-///    level 1 - Reset the points and the temperatures (plus the previous ones)
-///    level 0 - Remove the best solution (plus the previous ones)
 void CSA::reset(int level) {
   int i, j;
   switch (level) {
@@ -93,10 +78,6 @@ void CSA::reset(int level) {
   }
 }
 
-/// @brief Variables inicialization
-/// @param _num_opt Amount of optimizer
-/// @param _dim Cost Function Dimension
-/// @param _max_iter Maximun iteration
 CSA::CSA(int _num_opt, int _dim, int _max_iter) : m_maxCost(0.0), m_bestCost(0.0) {
   if (_dim < 1) {
     throw std::invalid_argument("Dimensional Value Invalid! Set _dim > 0.");

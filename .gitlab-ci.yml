@@ -1,0 +1,20 @@
+# The Docker image that will be used to build your app
+image: alpine:latest
+# Functions that should be executed before the build script is run
+before_script:
+  - apk update && apk add doxygen graphviz ttf-freefont
+pages:
+  script:
+    - git submodule add https://github.com/jothepro/doxygen-awesome-css.git
+    - cd doxygen-awesome-css && git checkout v2.3.1 && cd ..
+    - doxygen
+    - mkdir public
+    - mv doc/* public
+  artifacts:
+    paths:
+      # The folder that contains the files to be exposed at the Page URL
+      - public
+  rules:
+    # This ensures that only pushes to the default branch will trigger
+    # a pages deploy
+    - if: $CI_COMMIT_REF_NAME == $CI_DEFAULT_BRANCH

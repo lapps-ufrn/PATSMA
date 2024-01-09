@@ -41,7 +41,7 @@ class Autotuning {
    * @brief Run the autotuning algorithm
    * @tparam Point Type of optimization point
    * @param point Input/output array of tuning parameters
-   * @param _cost Cost value for the current iteration
+   * @param cost Cost value for the current iteration
    */
   template <typename Point>
   void exec(Point *point, double cost);
@@ -82,7 +82,6 @@ class Autotuning {
    * @param point Input/output array of tuning parameters
    * @param args Additional arguments to the function, the first argument needs
    * to be the optimization point
-   * @return Optimized point
    */
   template <typename Point = int, typename Func, typename... Args>
   void entireExecRuntime(Func function, Point *point, Args... args);
@@ -97,7 +96,6 @@ class Autotuning {
    * and the first argument needs to be the optimization point
    * @param point Input/output array of tuning parameters
    * @param args Additional arguments to the cost function
-   * @return Optimized point
    */
   template <typename Point = int, typename Func, typename... Args>
   void entireExec(Func function, Point *point, Args... args);
@@ -129,30 +127,10 @@ class Autotuning {
   template <typename Point = int, typename Func, typename... Args>
   void singleExec(Func function, Point *point, Args... args);
 
-  /**
-   * @brief Deleted copy assignment operator
-   * @param Autotuning Object to be assigned
-   * @return Deleted assignment operator
-   */
-  auto operator=(Autotuning) -> Autotuning = delete;
-
-  /**
-   * @brief Deleted move assignment operator
-   * @param Autotuning Object to be moved
-   * @return Deleted move assignment operator
-   */
+  // Deleted constructors and assignment operators to prevent copying and moving
   auto operator=(Autotuning &&) -> Autotuning & = delete;
-
-  /**
-   * @brief Deleted copy constructor
-   * @param Autotuning Object to be copied
-   */
+  auto operator=(Autotuning) -> Autotuning = delete;
   Autotuning(const Autotuning &) = delete;
-
-  /**
-   * @brief Deleted move constructor
-   * @param Autotuning Object to be moved
-   */
   Autotuning(Autotuning &&) = delete;
 
   /**
@@ -163,9 +141,9 @@ class Autotuning {
   /**
    * @brief Parameterized constructor with CSA as the default optimizer
    * @param dim Cost Function Dimension
-   * @param _min Minimum value of the search interval
-   * @param _max Maximum value of the search interval
-   * @param _ignore Number of iterations to ignore
+   * @param min Minimum value of the search interval
+   * @param max Maximum value of the search interval
+   * @param ignore Number of iterations to ignore
    * @param num_opt Number of optimizers
    * @param max_iter Maximum number of iterations
    */
@@ -173,10 +151,10 @@ class Autotuning {
 
   /**
    * @brief Parameterized constructor with a custom optimizer
-   * @param _min Minimum value of the search interval
-   * @param _max Maximum value of the search interval
-   * @param _ignore Number of iterations to ignore
-   * @param _optimizer Numerical optimizer instance
+   * @param min Minimum value of the search interval
+   * @param max Maximum value of the search interval
+   * @param ignore Number of iterations to ignore
+   * @param optimizer Numerical optimizer instance
    */
   Autotuning(double min, double max, int ignore, NumericalOptimizer *optimizer);
 
