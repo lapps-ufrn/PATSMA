@@ -1,0 +1,21 @@
+# See https://pre-commit.com for more information
+# See https://pre-commit.com/hooks.html for more hooks
+repos:
+- repo: https://github.com/pre-commit/pre-commit-hooks
+  rev: v4.4.0
+  hooks:
+    - id: trailing-whitespace
+    - id: end-of-file-fixer
+      args: ["-h"]
+    - id: check-yaml
+    - id: check-added-large-files
+
+- repo: https://github.com/pocc/pre-commit-hooks
+  rev: v1.3.5
+  hooks:
+    - id: clang-format
+      args: [--style=file]
+    - id: cppcheck
+      args: ["--verbose", "--enable=all", "--suppress=missingIncludeSystem", "--suppress=unmatchedSuppression", "--inconclusive", "--inline-suppr", "--std=c++17", "--language=c++", "--quiet", "--force", "--error-exitcode=1", "--suppressions-list=cppcheck-suppressions.txt", "./src/ ./test/ ./example/"]
+    # - id: clang-tidy
+    #   args: ["-p=./build/", "-config-file=./.clang-tidy", "./src/*"]

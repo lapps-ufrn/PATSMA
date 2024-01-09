@@ -1,0 +1,17 @@
+Language:        Cpp
+# BasedOnStyle can be one of: LLVM, Google, Chromium, Mozilla, WebKit
+BasedOnStyle:    Google
+# Column limit (default value: 80)
+ColumnLimit:     100
+# Indent width (default value: 2)
+IndentWidth:     2
+# Use tabs instead of spaces for indentation (default: false)
+UseTab:          false
+# Keep empty lines at the start and end of blocks (default: false)
+KeepEmptyLinesAtTheStartOfBlocks: true
+# Indent case labels within switch statement (default: false)
+IndentCaseLabels: true
+# Only merge functions defined inside a class. (default: false)
+AllowShortFunctionsOnASingleLine: Inline
+# Always put short ifs, else ifs and else statements on the same line. (default: Never)
+AllowShortIfStatementsOnASingleLine: AllIfsAndElse
