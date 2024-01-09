@@ -1,0 +1,83 @@
+# Doxyfile 1.9.1
+
+# This file describes the settings to be used by the documentation system
+# doxygen (www.doxygen.org) for a project.
+#
+# All text after a double hash (##) is considered a comment and is placed in
+# front of the TAG it is preceding.
+#
+# All text after a single hash (#) is considered a comment and will be ignored.
+# The format is:
+# TAG = value [value, ...]
+# For lists, items can also be appended using:
+# TAG += value [value, ...]
+# Values that contain spaces should be placed between quotes (\" \").
+
+#---------------------------------------------------------------------------
+# Project related configuration options
+#---------------------------------------------------------------------------
+
+DOXYFILE_ENCODING      = UTF-8
+PROJECT_NAME           = "PATSMA"
+PROJECT_NUMBER         = "1.0"
+PROJECT_BRIEF          = "Parameter Auto-Tuning for Shared Memory Algorithms"
+PROJECT_LOGO           = "assets/patsma_logo.png"
+OUTPUT_DIRECTORY       =
+OUTPUT_LANGUAGE        = English
+NUM_PROC_THREADS       = 0
+
+#---------------------------------------------------------------------------
+# Configuration options related to warning and progress messages
+#---------------------------------------------------------------------------
+
+WARN_NO_PARAMDOC       = YES
+WARN_AS_ERROR          = YES
+#WARN_LOGFILE           = "doxygen-error.log"
+
+#---------------------------------------------------------------------------
+# Configuration options related to the input files
+#---------------------------------------------------------------------------
+
+INPUT                  = src/
+FILE_PATTERNS          = *.c *.cc *.cxx *.cpp *.c++ *.h *.hh *.hxx *.hpp *.h++ *.tpp *.m *.markdown *.md *.mm
+RECURSIVE              = YES
+#EXAMPLE_PATH           = example/
+EXAMPLE_PATTERNS       = *
+EXAMPLE_RECURSIVE      = YES
+IMAGE_PATH             = assets/
+
+# If the USE_MDFILE_AS_MAINPAGE tag refers to the name of a markdown file that
+# is part of the input, its contents will be placed on the main page
+# (index.html). This can be useful if you have a project on for instance GitHub
+# and want to reuse the introduction page also for the doxygen output.
+
+USE_MDFILE_AS_MAINPAGE =
+
+#---------------------------------------------------------------------------
+# Configuration options related to the HTML output
+#---------------------------------------------------------------------------
+
+HTML_OUTPUT            = doc
+HTML_EXTRA_STYLESHEET  = doxygen-awesome-css/doxygen-awesome.css
+HTML_COLORSTYLE        = LIGHT # required with Doxygen >= 1.9.5
+GENERATE_TREEVIEW      = YES # optional. Also works without treeview
+DISABLE_INDEX          = NO
+FULL_SIDEBAR           = NO
+HTML_TIMESTAMP         = YES
+TREEVIEW_WIDTH         = 250
+
+#---------------------------------------------------------------------------
+# Configuration options related to the LaTeX output
+#---------------------------------------------------------------------------
+
+GENERATE_LATEX         = NO
+
+#---------------------------------------------------------------------------
+# Configuration options related to the dot tool
+#---------------------------------------------------------------------------
+
+UML_LOOK               = YES
+UML_LIMIT_NUM_FIELDS   = 5
+DOT_UML_DETAILS        = NO
+DOT_WRAP_THRESHOLD     = 20
+INTERACTIVE_SVG        = YES
