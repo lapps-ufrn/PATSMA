@@ -78,15 +78,15 @@ void CSA::reset(int level) {
   }
 }
 
-CSA::CSA(int _num_opt, int _dim, int _max_iter) : m_maxCost(0.0), m_bestCost(0.0) {
-  if (_dim < 1) {
-    throw std::invalid_argument("Dimensional Value Invalid! Set _dim > 0.");
+CSA::CSA(int dim, int num_opt, int max_iter) : m_maxCost(0.0), m_bestCost(0.0) {
+  if (dim < 1) {
+    throw std::invalid_argument("Dimensional Value Invalid! Set dim > 0.");
   }
-  if (_num_opt < 1) {
-    throw std::invalid_argument("Optmizers Number Invalid! Set _num_opt > 0.");
+  if (num_opt < 1) {
+    throw std::invalid_argument("Dimensional Value Invalid! Set dim > 0.");
   }
-  if (_max_iter < 1) {
-    throw std::invalid_argument("Max number of intereration Invalid! Set _max_iter > 0.");
+  if (max_iter < 1) {
+    throw std::invalid_argument("Max number of intereration Invalid! Set max_iter > 0.");
   }
 
   int i, j;
@@ -94,11 +94,11 @@ CSA::CSA(int _num_opt, int _dim, int _max_iter) : m_maxCost(0.0), m_bestCost(0.0
   this->m_iOpt = 0;
   this->m_iter = 0;
   this->m_step = 0;
-  this->m_nOpt = _num_opt;
-  this->m_dim = _dim;
+  this->m_nOpt = num_opt;
+  this->m_dim = dim;
 
   try {
-    this->m_maxIter = (int)(_max_iter / (double)_num_opt);
+    this->m_maxIter = (int)(max_iter / (double)num_opt);
   } catch (std::runtime_error &e) {
     std::cout << "Exception occurred" << std::endl << e.what();
   }

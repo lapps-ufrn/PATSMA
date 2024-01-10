@@ -66,7 +66,7 @@ void Autotuning::end() {
 
 void Autotuning::print() const {
   std::cout << "------------------- Autotuning Parameters -------------------" << std::endl;
-  std::cout << "\tNIgn: " << m_ignore;
+  std::cout << "NIgn: " << m_ignore << "\t";
   std::cout << "Min: " << m_min << "\tMax: " << m_max << std::endl;
   p_optimizer->print();
   std::cout << "-------------------------------------------------------------" << std::endl;

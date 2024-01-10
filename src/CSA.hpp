@@ -94,11 +94,11 @@ class CSA : public NumericalOptimizer {
  public:
   /**
    * @brief Constructor for the CSA class.
-   * @param _num_opt Number of optimizers.
-   * @param _dim Dimension of the cost function.
-   * @param _max_iter Maximum number of iterations.
+   * @param dim Dimension of the cost function.
+   * @param num_opt Number of optimizers.
+   * @param max_iter Maximum number of iterations.
    */
-  CSA(int _num_opt, int _dim, int _max_iter);
+  CSA(int dim, int num_opt, int max_iter);
 
   /**
    * @brief Destructor for the CSA class.

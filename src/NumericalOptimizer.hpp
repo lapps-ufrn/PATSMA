@@ -79,7 +79,7 @@ class NumericalOptimizer {
   /**
    * @brief Prints information about the concret class.
    */
-  virtual void print() const = 0;
+  virtual void print() const {};
 };
 
 // Include headers for concrete optimization algorithms

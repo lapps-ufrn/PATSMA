@@ -5,12 +5,14 @@
 
 #pragma once
 
-#include "NumericalOptimizer.hpp"
+#include <type_traits>
 
+#include "NumericalOptimizer.hpp"
 /**
  * @brief Class for Autotuning
  */
 class Autotuning {
+
   double m_min;  ///< Minimum value of the search interval
   double m_max;  ///< Maximum value of the search interval
   int m_iter;    ///< Iteration number
@@ -82,9 +84,11 @@ class Autotuning {
    * @param point Input/output array of tuning parameters
    * @param args Additional arguments to the function, the first argument needs
    * to be the optimization point
+   * @return Returns the values returned by the cost function
    */
   template <typename Point = int, typename Func, typename... Args>
-  void entireExecRuntime(Func function, Point *point, Args... args);
+  auto entireExecRuntime(Func function, Point *point, Args... args)
+      -> std::invoke_result_t<Func, Args..., Point *>;
 
   /**
    * @brief Execute the entire autotuning, recommended to be done off the
@@ -109,9 +113,11 @@ class Autotuning {
    * to be the optimization point
    * @param point Input/output array of tuning parameters
    * @param args Additional arguments to the function
+   * @return Returns the values returned by the cost function
    */
   template <typename Point = int, typename Func, typename... Args>
-  void singleExecRuntime(Func function, Point *point, Args... args);
+  auto singleExecRuntime(Func function, Point *point, Args... args)
+      -> std::invoke_result_t<Func, Args..., Point *>;
 
   /**
    * @brief Execute one iteration of the autotuning, appropriate to be done on

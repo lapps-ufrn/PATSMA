@@ -57,7 +57,7 @@ USE_MDFILE_AS_MAINPAGE =
 # Configuration options related to the HTML output
 #---------------------------------------------------------------------------
 
-HTML_OUTPUT            = doc
+HTML_OUTPUT            = html
 HTML_EXTRA_STYLESHEET  = doxygen-awesome-css/doxygen-awesome.css
 HTML_COLORSTYLE        = LIGHT # required with Doxygen >= 1.9.5
 GENERATE_TREEVIEW      = YES # optional. Also works without treeview

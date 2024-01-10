@@ -1,16 +1,52 @@
-# The Docker image that will be used to build your app
-image: alpine:latest
-# Functions that should be executed before the build script is run
-before_script:
+stages:
+  - build
+  - test
+  - deploy
+
+build:
+  stage: build
+  image: gcc
+  before_script:
+    - apt update && apt -y install cmake make catch2
+  script:
+    - echo "Installing PATSMA library..."
+    - mkdir build && cd build
+    - cmake ../ -DOPENMP=ON
+    - make -j install
+    - echo "Compiling test folder..."
+    - cd ${CI_PROJECT_DIR}/test && mkdir build && cd build
+    - cmake ../ -DCMAKE_INSTALL_PREFIX=${CI_PROJECT_DIR}
+    - make -j install
+    - echo "Compiling Example folder..."
+    - cd ${CI_PROJECT_DIR}/example && mkdir build && cd build
+    - cmake ../ -DCMAKE_INSTALL_PREFIX=${CI_PROJECT_DIR}
+    - make -j install
+  artifacts:
+    paths:
+      - ${CI_PROJECT_DIR}/bin/
+
+# run tests using the binary built before
+test:
+  stage: test
+  needes: [build]
+  image: gcc
+  script:
+    - chmod 777 ./test/runtests.sh
+    - ./test/runtests.sh
+
+pages:
+  stage: deploy
+  needes: [test]
+  image: alpine:latest
+  before_script:
   - apk update && apk add doxygen graphviz ttf-freefont
   - apk add git
-pages:
   script:
     - git submodule add --force https://github.com/jothepro/doxygen-awesome-css.git
     - cd doxygen-awesome-css && git checkout v2.3.1 && cd ..
     - doxygen
     - mkdir public
-    - mv doc/* public
+    - mv html/* public
   artifacts:
     paths:
       # The folder that contains the files to be exposed at the Page URL
