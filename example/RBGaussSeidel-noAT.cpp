@@ -58,11 +58,12 @@ double matrix_calculation(double **A, int n) {
 }
 
 void solve_parallel(double **A, int n) {
+  int iters;
   double diff = 0;
 
   printf("\n\n-----------------------Parallel Red Black Solver-----------------------\n\n\n");
 
-  for (int iters = 1; iters < MAX_ITER; ++iters) {
+  for (iters = 1; iters < MAX_ITER; ++iters) {
     diff = matrix_calculation(A, N - 1);
   }
 

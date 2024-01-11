@@ -28,7 +28,7 @@ build:
 # run tests using the binary built before
 test:
   stage: test
-  needes: [build]
+  needs: [build]
   image: gcc
   script:
     - chmod 777 ./test/runtests.sh
@@ -36,7 +36,7 @@ test:
 
 pages:
   stage: deploy
-  needes: [test]
+  needs: [test]
   image: alpine:latest
   before_script:
   - apk update && apk add doxygen graphviz ttf-freefont

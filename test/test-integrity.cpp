@@ -10,10 +10,10 @@
 #include "Autotuning.hpp"
 #include "Test.hpp"
 
-#define CHECK_MESSAGE(cond, msg) \
-  do {                           \
-    INFO(msg);                   \
-    CHECK(cond);                 \
+#define REQUIRE_MESSAGE(cond, msg) \
+  do {                             \
+    INFO(msg);                     \
+    REQUIRE(cond);                 \
   } while ((void)0, 0)
 
 TEST_CASE("CSA") {
@@ -24,17 +24,17 @@ TEST_CASE("CSA") {
   int n_iter = 20;
 
   SECTION("Test exception throwing") {
-    CHECK_THROWS_AS(new Autotuning(min, max, -1, nullptr), std::invalid_argument);
-    CHECK_THROWS_WITH(new Autotuning(min, max, -1, nullptr),
-                      "Ignore Value Invalid! Set _ignore >= 0.");
+    REQUIRE_THROWS_AS(new Autotuning(min, max, -1, nullptr), std::invalid_argument);
+    REQUIRE_THROWS_WITH(new Autotuning(min, max, -1, nullptr),
+                        "Ignore Value Invalid! Set _ignore >= 0.");
 
-    CHECK_THROWS_AS(new CSA(0, n_opt, n_iter), std::invalid_argument);
-    CHECK_THROWS_WITH(new CSA(0, n_opt, n_iter), "Dimensional Value Invalid! Set dim > 0.");
-    CHECK_THROWS_AS(new CSA(dim, 0, n_iter), std::invalid_argument);
-    CHECK_THROWS_WITH(new CSA(dim, 0, n_iter), "Optmizers Number Invalid! Set num_opt > 0.");
-    CHECK_THROWS_AS(new CSA(dim, n_opt, 0), std::invalid_argument);
-    CHECK_THROWS_WITH(new CSA(dim, n_opt, 0),
-                      "Max number of intereration Invalid! Set max_iter > 0.");
+    REQUIRE_THROWS_AS(new CSA(0, n_opt, n_iter), std::invalid_argument);
+    REQUIRE_THROWS_WITH(new CSA(0, n_opt, n_iter), "Dimensional Value Invalid! Set dim > 0.");
+    REQUIRE_THROWS_AS(new CSA(dim, 0, n_iter), std::invalid_argument);
+    REQUIRE_THROWS_WITH(new CSA(dim, 0, n_iter), "Optmizers Number Invalid! Set num_opt > 0.");
+    REQUIRE_THROWS_AS(new CSA(dim, n_opt, 0), std::invalid_argument);
+    REQUIRE_THROWS_WITH(new CSA(dim, n_opt, 0),
+                        "Max number of intereration Invalid! Set max_iter > 0.");
   }
 
   SECTION("Reset Cases") {
@@ -45,14 +45,14 @@ TEST_CASE("CSA") {
     auto *at = new Autotuning(min, max, ignore, dim, n_opt, n_iter);
 
     at->singleExec(Test::function, point, dim);
-    CHECK_MESSAGE(point[0] == Test::get_min_point()[0], "Base Case");
+    REQUIRE_MESSAGE(point[0] == Test::get_min_point()[0], "Base Case");
 
     for (auto &&level : reset_levels) {
       at->reset(level);
       if (level == 0) Test::reset();
 
       at->singleExec(Test::function, point, dim);
-      CHECK_MESSAGE(point[0] == Test::get_min_point()[0], "Reset level " + std::to_string(level));
+      REQUIRE_MESSAGE(point[0] == Test::get_min_point()[0], "Reset level " + std::to_string(level));
     }
 
     delete at;
@@ -76,7 +76,7 @@ TEST_CASE("CSA") {
 
           std::vector<int> min_point = Test::get_min_point();
           for (int j = 0; j < _dim; j++) {
-            CHECK(point[j] == min_point[j]);
+            REQUIRE(point[j] == min_point[j]);
           }
 
           delete[] point;
@@ -94,14 +94,14 @@ TEST_CASE("Nelder-Mead") {
   double e = 10;
 
   SECTION("Test exception throwing") {
-    CHECK_THROWS_AS(new Autotuning(min, max, -1, nullptr), std::invalid_argument);
-    CHECK_THROWS_WITH(new Autotuning(min, max, -1, nullptr),
-                      "Ignore Value Invalid! Set _ignore >= 0.");
+    REQUIRE_THROWS_AS(new Autotuning(min, max, -1, nullptr), std::invalid_argument);
+    REQUIRE_THROWS_WITH(new Autotuning(min, max, -1, nullptr),
+                        "Ignore Value Invalid! Set _ignore >= 0.");
 
-    CHECK_THROWS_AS(new NelderMead(0, e), std::invalid_argument);
-    CHECK_THROWS_WITH(new NelderMead(0, e), "Dimensional Value Invalid! Set dim > 0.");
-    CHECK_THROWS_AS(new NelderMead(dim, -.1), std::invalid_argument);
-    CHECK_THROWS_WITH(new NelderMead(dim, -.1), "Invalid m_error! Set error >= 0.");
+    REQUIRE_THROWS_AS(new NelderMead(0, e), std::invalid_argument);
+    REQUIRE_THROWS_WITH(new NelderMead(0, e), "Dimensional Value Invalid! Set dim > 0.");
+    REQUIRE_THROWS_AS(new NelderMead(dim, -.1), std::invalid_argument);
+    REQUIRE_THROWS_WITH(new NelderMead(dim, -.1), "Invalid m_error! Set error >= 0.");
   }
 
   SECTION("Reset Cases") {
@@ -113,14 +113,14 @@ TEST_CASE("Nelder-Mead") {
     Autotuning *at = new Autotuning(min, max, ignore, new NelderMead(dim, e));
 
     at->singleExec(Test::function, point, dim);
-    CHECK_MESSAGE(point[0] == Test::get_min_point()[0], "Base Case");
+    REQUIRE_MESSAGE(point[0] == Test::get_min_point()[0], "Base Case");
 
     for (auto &&level : reset_levels) {
       at->reset(level);
       if (level == 0) Test::reset();
 
       at->singleExec(Test::function, point, dim);
-      CHECK_MESSAGE(point[0] == Test::get_min_point()[0], "Reset level " + std::to_string(level));
+      REQUIRE_MESSAGE(point[0] == Test::get_min_point()[0], "Reset level " + std::to_string(level));
     }
     delete[] point;
     delete at;
@@ -141,7 +141,7 @@ TEST_CASE("Nelder-Mead") {
 
           std::vector<int> min_point = Test::get_min_point();
           for (int j = 0; j < _dim; j++) {
-            CHECK(point[j] == min_point[j]);
+            REQUIRE(point[j] == min_point[j]);
           }
 
           delete at;

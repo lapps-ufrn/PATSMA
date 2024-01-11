@@ -73,13 +73,14 @@ void solve_parallel(double **A, int n) {
   /*PATSMA INSTANCE*/
   int *chunk = new int[dim];
   auto *at = new Autotuning(min, max, ignore, dim, n_opt, n_iter);
+  int iters;
   double diff = 0;
 
   printf("\n\n-----------------------Parallel Red Black Solver-----------------------\n\n\n");
 
   at->entireExecRuntime(matrix_calculation, chunk, A, N - 1);
 
-  for (int iters = 1; iters < MAX_ITER; ++iters) {
+  for (iters = 1; iters < MAX_ITER; ++iters) {
     matrix_calculation(A, N - 1, chunk);
   }
 

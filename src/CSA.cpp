@@ -83,7 +83,7 @@ CSA::CSA(int dim, int num_opt, int max_iter) : m_maxCost(0.0), m_bestCost(0.0) {
     throw std::invalid_argument("Dimensional Value Invalid! Set dim > 0.");
   }
   if (num_opt < 1) {
-    throw std::invalid_argument("Dimensional Value Invalid! Set dim > 0.");
+    throw std::invalid_argument("Optmizers Number Invalid! Set num_opt > 0.");
   }
   if (max_iter < 1) {
     throw std::invalid_argument("Max number of intereration Invalid! Set max_iter > 0.");
