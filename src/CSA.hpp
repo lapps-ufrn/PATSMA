@@ -138,11 +138,11 @@ class CSA : public NumericalOptimizer {
   /**
    * @brief Reset the CSA algorithm to a specified level.
    * @param level The level of resetting:
-   *    - level 2: Reset the number of iterations.
+   *    - level 0: Reset the number of iterations. (default)
    *    - level 1: Reset the points and temperatures (plus the previous ones).
-   *    - level 0: Remove the best solution (plus the previous ones).
+   *    - level 2: Remove the best solution (plus the previous ones).
    */
-  void reset(int level) override;
+  void reset(int level = 0) override;
 
   /**
    * @brief Default constructor.

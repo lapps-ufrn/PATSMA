@@ -19,8 +19,8 @@ class Autotuning {
   int m_ignore;  ///< Number of iterations to ignore
   double m_cost;
 
-  double m_t0, m_t1;  ///< Time starting and ending
-  double m_runtime;   ///< Total time of a task
+  double m_t0;       ///< Starting time
+  double m_runtime;  ///< Total time of a task
 
   NumericalOptimizer *p_optimizer;  ///< Numerical optimizer instance
 
@@ -84,11 +84,9 @@ class Autotuning {
    * @param point Input/output array of tuning parameters
    * @param args Additional arguments to the function, the first argument needs
    * to be the optimization point
-   * @return Returns the values returned by the cost function
    */
   template <typename Point = int, typename Func, typename... Args>
-  auto entireExecRuntime(Func function, Point *point, Args... args)
-      -> std::invoke_result_t<Func, Args..., Point *>;
+  void entireExecRuntime(Func function, Point *point, Args... args);
 
   /**
    * @brief Execute the entire autotuning, recommended to be done off the
@@ -129,9 +127,11 @@ class Autotuning {
    * and the first argument needs to be the optimization point
    * @param point Input/output array of tuning parameters
    * @param args Additional arguments to the cost function
+   * @return Returns the values returned by the cost function
    */
   template <typename Point = int, typename Func, typename... Args>
-  void singleExec(Func function, Point *point, Args... args);
+  auto singleExec(Func function, Point *point, Args... args)
+      -> std::invoke_result_t<Func, Args..., Point *>;
 
   // Deleted constructors and assignment operators to prevent copying and moving
   auto operator=(Autotuning &&) -> Autotuning & = delete;

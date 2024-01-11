@@ -39,7 +39,6 @@ template <typename Point>
 void Autotuning::start(Point *point) {
   static_assert(std::is_arithmetic<Point>::value,
                 "Autotuning only supports integer and floating-point types");
-
   // End execution
   if (!isEnd()) {
 #ifdef _OPENMP
@@ -59,23 +58,20 @@ void Autotuning::start(Point *point) {
 }
 
 template <typename Point, typename Func, typename... Args>
-auto Autotuning::entireExecRuntime(Func function, Point *point, Args... args)
-    -> std::invoke_result_t<Func, Args..., Point *> {
+void Autotuning::entireExecRuntime(Func function, Point *point, Args... args) {
   static_assert(std::is_arithmetic<Point>::value,
-                "Autotuning only supports integer and floating-point types");
-  std::invoke_result_t<Func, Args..., Point *> result;
+                "Autotuning only supports integer and floating-point types as a Point.");
   while (!isEnd()) {
     start(point);
-    result = function(args..., point);
+    function(args..., point);
     end();
   }
-  return result;
 }
 
 template <typename Point, typename Func, typename... Args>
 void Autotuning::entireExec(Func function, Point *point, Args... args) {
   static_assert(std::is_arithmetic<Point>::value,
-                "Autotuning only supports integer and floating-point types");
+                "Autotuning only supports integer and floating-point types as a Point.");
 
   while (!isEnd()) {
     exec(point, m_cost);
@@ -87,20 +83,28 @@ template <typename Point, typename Func, typename... Args>
 auto Autotuning::singleExecRuntime(Func function, Point *point, Args... args)
     -> std::invoke_result_t<Func, Args..., Point *> {
   static_assert(std::is_arithmetic<Point>::value,
-                "Autotuning only supports integer and floating-point types");
+                "Autotuning only supports integer and floating-point types as a Point.");
 
-  std::invoke_result_t<Func, Args..., Point *> result;
-  start(point);
-  result = function(args..., point);
-  end();
-
-  return result;
+  if constexpr (std::is_void_v<std::invoke_result_t<Func, Args..., Point *>>) {
+    start(point);
+    function(args..., point);
+    end();
+  } else {
+    start(point);
+    auto result = function(args..., point);
+    end();
+    return result;
+  }
 }
 
 template <typename Point, typename Func, typename... Args>
-void Autotuning::singleExec(Func function, Point *point, Args... args) {
+auto Autotuning::singleExec(Func function, Point *point, Args... args)
+    -> std::invoke_result_t<Func, Args..., Point *> {
   static_assert(std::is_arithmetic<Point>::value,
-                "Autotuning only supports integer and floating-point types");
+                "Autotuning only supports integer and floating-point types as a Point.");
+  static_assert(std::is_floating_point<std::invoke_result_t<Func, Args..., Point *>>::value,
+                "The singleExec return type need to be a floating point type!");
   exec(point, m_cost);
   m_cost = function(args..., point);
+  return m_cost;
 }

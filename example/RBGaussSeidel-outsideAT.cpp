@@ -79,9 +79,10 @@ void solve_parallel(double **A, int n) {
   printf("\n\n-----------------------Parallel Red Black Solver-----------------------\n\n\n");
 
   at->entireExecRuntime(matrix_calculation, chunk, A, N - 1);
+  initialize(A, N);
 
   for (iters = 1; iters < MAX_ITER; ++iters) {
-    matrix_calculation(A, N - 1, chunk);
+    diff = matrix_calculation(A, N - 1, chunk);
   }
 
   printf("Difference after %3d iterations: %f\n", iters, diff);

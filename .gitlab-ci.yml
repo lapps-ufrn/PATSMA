@@ -31,7 +31,8 @@ test:
   needs: [build]
   image: gcc
   script:
-    - chmod 777 ./test/runtests.sh
+    - echo "Checking code integrity..."
+    - ${CI_PROJECT_DIR}/bin/integrity
     - ./test/runtests.sh
 
 pages:
