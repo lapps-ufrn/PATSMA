@@ -1,5 +1,7 @@
 # PATSMA
 
+Library documentation in https://lappsufrn.gitlab.io/auto-tuning/.
+
 ## Running Example
 
 Installing the PATSMA library
