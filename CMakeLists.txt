@@ -1,6 +1,6 @@
 cmake_minimum_required (VERSION 3.5)
 
-project (autotuning)
+project (PATSMA VERSION 1.0.0)
 
 if(NOT WIN32)
   string(ASCII 27 Esc)
@@ -76,34 +76,47 @@ if (DEBUG)
   set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g -DDEBUG -Wall")
 endif ()
 
-# # Find source files
-# file(GLOB SOURCES src/*.cpp)
-# message(${SOURCES})
+## LIBRARY INSTALL CONFIGURATION ##
+# Gather source and header files using 'file' command
+file(GLOB TEMPLTS "src/*.tpp")
+file(GLOB SOURCES "src/*.cpp")
+file(GLOB HEADERS "src/*.hpp")
 
-# # Create shared library
-# add_library(${PROJECT_NAME} SHARED ${SOURCES})
+# Create a static library from the source files
+add_library(${PROJECT_NAME}_lib STATIC ${SOURCES})
 
-# Install library
-# install(TARGETS ${PROJECT_NAME} DESTINATION examples/AT_LIB/${PROJECT_NAME}/lib)
+# Specify include directories, compile options, and libraries for the library
+target_include_directories(${PROJECT_NAME}_lib PUBLIC ${MPI_CXX_INCLUDE_DIRS})
+target_compile_options(${PROJECT_NAME}_lib PUBLIC ${MPI_CXX_COMPILE_FLAGS})
+target_link_libraries(${PROJECT_NAME}_lib ${MPI_CXX_LIBRARIES})
 
-# # Install library headers
-# file(GLOB HEADERS src/*.h)
-# target_include_directories (${PROJECT_NAME} PUBLIC ${MPI_CXX_INCLUDE_DIRS})
-# target_compile_options (${PROJECT_NAME} PUBLIC ${OpenMP_CXX_FLAGS} ${MPI_CXX_COMPILE_FLAGS})
+# Install headers and the library
+install(FILES ${HEADERS} ${TEMPLTS} DESTINATION include/)
+install(TARGETS ${PROJECT_NAME}_lib DESTINATION lib/)
 
-# install(FILES ${HEADERS} DESTINATION examples/AT_LIB/${PROJECT_NAME}/include)
-# install(TARGETS ${PROJECT_NAME} EXPORT ${PROJECT_NAME}Config
-#         ARCHIVE  DESTINATION examples/AT_LIB/${PROJECT_NAME}
-#         LIBRARY  DESTINATION examples/AT_LIB/${PROJECT_NAME}
-#         RUNTIME  DESTINATION examples/AT_LIB/${PROJECT_NAME})
+# Create an uppercase version of the project name
+string(TOUPPER ${PROJECT_NAME} PROJECT_NAME_UPPER)
 
-# install(EXPORT ${PROJECT_NAME}Config DESTINATION examples/AT_LIB/${PROJECT_NAME})
+# Include CMakePackageConfigHelpers to generate package config files
+include(CMakePackageConfigHelpers)
 
-# export(TARGETS ${PROJECT_NAME} FILE examples/AT_LIB/${PROJECT_NAME}/${PROJECT_NAME}Config.cmake)
+# Generate the version file for the package
+write_basic_package_version_file(
+  "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}_libConfigVersion.cmake"
+  VERSION 1.0
+  COMPATIBILITY AnyNewerVersion
+)
 
-add_subdirectory (src)
+# Generate the package config file
+configure_package_config_file(
+  "${CMAKE_CURRENT_SOURCE_DIR}/Config.cmake.in"
+  "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}_libConfig.cmake"
+  INSTALL_DESTINATION ${CMAKE_INSTALL_PREFIX}/cmake/
+)
 
-# Project test source files
-if (TEST)
-  add_subdirectory (test)
-endif ()
+# Install the generated package config files
+install(FILES
+  "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}_libConfig.cmake"
+  "${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}_libConfigVersion.cmake"
+  DESTINATION ${CMAKE_INSTALL_PREFIX}/cmake/
+)

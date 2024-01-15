@@ -14,10 +14,6 @@
 *.dylib
 *.dll
 
-# Fortran module files
-*.mod
-*.smod
-
 # Compiled Static libraries
 *.lai
 *.la
@@ -32,40 +28,13 @@
 *.tmp
 *.out
 
-# IDE-specific files
-# (Adjust based on your specific IDE)
 .vscode/
-.idea/
-*.iml
-*.ipr
-*.iws
-*.swp
+.gitlab-ci-local/
 
-# Testing files
-*.gtest
-*.gmock
-*.test
-
-# Makefiles and build outputs
-Makefile
-makefile
-#CMakeLists.txt
+# Build outputs
+public/
 build/
 lib/
 bin/
-
-# Documentation
-Doxyfile
-doxygen/
-
-# Generated documentation
 doc/
-
-# Ignore Visual Studio specific files
-# (Only uncomment if using Visual Studio)
-*.suo
-*.sln
-*.user
-*.vsprops
-Debug/
-Release/
+html/

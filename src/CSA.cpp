@@ -4,11 +4,11 @@
 #include <cstring>   // memset, memcpy
 #include <iostream>  // cout, endl
 
-// #ifndef DBL_MAX
-// #include <limits>  // numeric_limits
-// #define DBL_MAX std::numeric_limits<double>::max()
-// #define DBL_MIN std::numeric_limits<double>::min()
-// #endif
+#ifndef DBL_MAX
+#include <limits>  // numeric_limits
+#define DBL_MAX std::numeric_limits<double>::max()
+#define DBL_MIN std::numeric_limits<double>::min()
+#endif
 
 inline void CSA::copy_solution(double *out, double *in) const {
   memcpy(out, in, m_dim * sizeof(double));
@@ -41,7 +41,7 @@ void CSA::swap_opt_info(int i) {
 void CSA::reset(int level) {
   int i, j;
   switch (level) {
-    case 0:  // Remove infomation of best solution
+    case 2:  // Remove infomation of best solution
       m_bestCost = DBL_MAX;
       memset(m_bestSol, 0, m_dim * sizeof(double));
 
@@ -55,16 +55,35 @@ void CSA::reset(int level) {
 
       // Inital points generate
       for (i = 0; i < m_nOpt; i++) {
+        m_opts[i].curCost = DBL_MAX;
+        m_opts[i].probCost = DBL_MAX;
         for (j = 0; j < m_dim; j++) {
           drand48_r(&m_opts[i].buffer, &m_opts[i].result);
           m_opts[i].probSol[j] = (m_opts[i].result * 2.0 - 1.0);
           m_opts[i].curSol[j] = m_opts[i].probSol[j];  // Copy Initial Solutions
         }
-        m_opts[i].curCost = DBL_MAX;
-        m_opts[i].probCost = DBL_MAX;
       }
 
-    case 2:  // Reset only number of iteretions
+      // Step 1: Initialize variables [Optimizers]
+      srand(time(nullptr));
+      for (i = 0; i < m_nOpt; i++) {
+      }
+
+      // Step 1.1: Generate inital points
+      for (i = 0; i < m_nOpt; i++) {
+        m_opts[i].id = i;
+        m_opts[i].curCost = DBL_MAX;
+        m_opts[i].probCost = DBL_MAX;
+        srand48_r(rand(), &m_opts[i].buffer);
+
+        for (j = 0; j < m_dim; j++) {
+          drand48_r(&m_opts[i].buffer, &m_opts[i].result);
+          m_opts[i].probSol[j] = (m_opts[i].result * 2.0 - 1.0);
+          m_opts[i].curSol[j] = m_opts[i].probSol[j];  // Copy Initial Solutions
+        }
+      }
+
+    case 0:  // Reset only number of iteretions
       m_iter = 0;
       m_iOpt = 0;
       if (m_step == END) {
@@ -78,15 +97,15 @@ void CSA::reset(int level) {
   }
 }
 
-CSA::CSA(int _num_opt, int _dim, int _max_iter) : m_maxCost(0.0), m_bestCost(0.0) {
-  if (_dim < 1) {
-    throw std::invalid_argument("Dimensional Value Invalid! Set _dim > 0.");
+CSA::CSA(int dim, int num_opt, int max_iter) : m_maxCost(0.0), m_bestCost(0.0) {
+  if (dim < 1) {
+    throw std::invalid_argument("Dimensional Value Invalid! Set dim > 0.");
   }
-  if (_num_opt < 1) {
-    throw std::invalid_argument("Optmizers Number Invalid! Set _num_opt > 0.");
+  if (num_opt < 1) {
+    throw std::invalid_argument("Optmizers Number Invalid! Set num_opt > 0.");
   }
-  if (_max_iter < 1) {
-    throw std::invalid_argument("Max number of intereration Invalid! Set _max_iter > 0.");
+  if (max_iter < 1) {
+    throw std::invalid_argument("Max number of intereration Invalid! Set max_iter > 0.");
   }
 
   int i, j;
@@ -94,11 +113,11 @@ CSA::CSA(int _num_opt, int _dim, int _max_iter) : m_maxCost(0.0), m_bestCost(0.0
   this->m_iOpt = 0;
   this->m_iter = 0;
   this->m_step = 0;
-  this->m_nOpt = _num_opt;
-  this->m_dim = _dim;
+  this->m_nOpt = num_opt;
+  this->m_dim = dim;
 
   try {
-    this->m_maxIter = (int)(_max_iter / (double)_num_opt);
+    this->m_maxIter = (int)(max_iter / (double)num_opt);
   } catch (std::runtime_error &e) {
     std::cout << "Exception occurred" << std::endl << e.what();
   }

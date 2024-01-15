@@ -25,7 +25,6 @@ Autotuning::Autotuning(double min, double max, int ignore, NumericalOptimizer *o
       m_ignore(ignore + 1),
       m_cost(0),
       m_t0(0),
-      m_t1(0),
       m_runtime(0),
       p_optimizer(optimizer) {
 
@@ -57,16 +56,13 @@ void Autotuning::end() {
 #ifdef _OPENMP
 #pragma omp single
 #endif
-    {
-      m_t1 = omp_get_wtime();
-      m_runtime = m_t0 - m_t1;
-    }
+    { m_runtime = omp_get_wtime() - m_t0; }
   }
 }
 
 void Autotuning::print() const {
   std::cout << "------------------- Autotuning Parameters -------------------" << std::endl;
-  std::cout << "\tNIgn: " << m_ignore;
+  std::cout << "NIgn: " << m_ignore << "\t";
   std::cout << "Min: " << m_min << "\tMax: " << m_max << std::endl;
   p_optimizer->print();
   std::cout << "-------------------------------------------------------------" << std::endl;
