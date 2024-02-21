@@ -74,7 +74,7 @@ class NumericalOptimizer {
    *
    * @param level An optional level parameter for specific reset behaviors.
    */
-  virtual void reset(int level) = 0;
+  virtual void reset(int level) {};
 
   /**
    * @brief Prints information about the concret class.
