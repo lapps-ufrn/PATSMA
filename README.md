@@ -1,6 +1,6 @@
 # PATSMA
 
-Library documentation in https://lappsufrn.gitlab.io/auto-tuning/.
+Library documentation in https://lappsufrn.gitlab.io/patsma/.
 
 ## Running Example
 
